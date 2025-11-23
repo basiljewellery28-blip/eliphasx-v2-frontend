@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    body {
+        background-color: theme('colors.surface.alt');
+        @apply text-slate-700 font-sans antialiased;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-family: theme('fontFamily.heading');
+        color: theme('colors.primary.DEFAULT');
+        @apply font-bold tracking-tight;
+    }
+}
+
+@layer components {
+    .btn-primary {
+        background-color: theme('colors.primary.DEFAULT');
+        color: white;
+        @apply px-4 py-2 rounded-lg transition-colors duration-200 font-medium shadow-sm hover:shadow-md;
+    }
+
+    .btn-primary:hover {
+        background-color: theme('colors.primary.light');
+    }
+
+    .btn-secondary {
+        background-color: white;
+        color: theme('colors.primary.DEFAULT');
+        @apply border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium shadow-sm;
+    }
+
+    .btn-accent {
+        background-color: theme('colors.secondary.DEFAULT');
+        color: white;
+        @apply px-4 py-2 rounded-lg transition-colors duration-200 font-medium shadow-sm hover:shadow-md;
+    }
+
+    .btn-accent:hover {
+        background-color: theme('colors.secondary.light');
+    }
+
+    .card {
+        background-color: white;
+        @apply rounded-xl shadow-sm border border-gray-100 p-6;
+    }
+
+    .input-field {
+        @apply mt-1 block w-full rounded-lg border-gray-300 shadow-sm sm:text-sm transition-shadow duration-200;
+    }
+
+    .input-field:focus {
+        border-color: theme('colors.secondary.DEFAULT');
+        --tw-ring-color: theme('colors.secondary.DEFAULT');
+        @apply ring-1 ring-opacity-100;
+    }
+}
