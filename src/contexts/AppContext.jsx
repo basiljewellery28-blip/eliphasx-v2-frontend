@@ -1,15 +1,16 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { authAPI, quotesAPI, clientsAPI } from '../services/api';
+import { authAPI, quotesAPI, clientsAPI, adminAPI } from '../services/api';
 
 const AppContext = createContext();
 
 const initialState = {
-    user: null,
-    isAdmin: false,
+    user: JSON.parse(localStorage.getItem('user') || 'null'),
+    isAdmin: JSON.parse(localStorage.getItem('user') || 'null')?.role === 'admin',
     clients: [],
     quotes: [],
     currentQuote: null,
     metalPrices: [],
+    stonePrices: [],
     loading: false,
     notifications: []
 };
@@ -30,6 +31,8 @@ function appReducer(state, action) {
             return { ...state, currentQuote: action.payload };
         case 'SET_METAL_PRICES':
             return { ...state, metalPrices: action.payload };
+        case 'SET_STONE_PRICES':
+            return { ...state, stonePrices: action.payload };
         case 'SET_LOADING':
             return { ...state, loading: action.payload };
         case 'ADD_NOTIFICATION':
@@ -56,7 +59,7 @@ export function AppProvider({ children }) {
         const user = localStorage.getItem('user');
 
         if (token && user) {
-            dispatch({ type: 'SET_USER', payload: JSON.parse(user) });
+            // User is already set in initialState, just load data
             loadInitialData();
         }
     }, []);
@@ -66,15 +69,17 @@ export function AppProvider({ children }) {
             if (!background) dispatch({ type: 'SET_LOADING', payload: true });
 
             // We might not be able to load everything if not logged in, but this is called after login check
-            const [clientsResponse, quotesResponse, metalResponse] = await Promise.all([
+            const [clientsResponse, quotesResponse, metalResponse, stoneResponse] = await Promise.all([
                 clientsAPI.getAll().catch(() => ({ data: { clients: [] } })),
                 quotesAPI.getAll().catch(() => ({ data: { quotes: [] } })),
-                quotesAPI.getMetalPrices().catch(() => ({ data: { metalPrices: [] } }))
+                quotesAPI.getMetalPrices().catch(() => ({ data: { metalPrices: [] } })),
+                adminAPI.getStonePrices().catch(() => ({ data: { stonePrices: [] } }))
             ]);
 
             dispatch({ type: 'SET_CLIENTS', payload: clientsResponse.data.clients });
             dispatch({ type: 'SET_QUOTES', payload: quotesResponse.data.quotes });
             dispatch({ type: 'SET_METAL_PRICES', payload: metalResponse.data.metalPrices });
+            dispatch({ type: 'SET_STONE_PRICES', payload: stoneResponse.data.stonePrices });
         } catch (error) {
             console.error('Failed to load initial data', error);
         } finally {

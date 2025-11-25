@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../../contexts/AppContext';
 
 const Dashboard = () => {
     const { user, quotes, clients, logout, loadInitialData } = useApp();
+    const navigate = useNavigate();
 
     useEffect(() => {
         loadInitialData(true);
@@ -68,7 +69,7 @@ const Dashboard = () => {
                             className="input-field w-full sm:w-64"
                             onChange={(e) => {
                                 if (e.target.value) {
-                                    window.location.href = `/quote/new?client_id=${e.target.value}`;
+                                    navigate(`/quote/new?client_id=${e.target.value}`);
                                 }
                             }}
                             defaultValue=""

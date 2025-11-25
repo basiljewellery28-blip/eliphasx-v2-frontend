@@ -47,7 +47,7 @@ export const quotesAPI = {
     create: (quoteData) => api.post('/quotes', quoteData),
     update: (id, quoteData) => api.put(`/quotes/${id}`, quoteData),
     delete: (id) => api.delete(`/quotes/${id}`),
-    generatePDF: (id, type) => api.get(`/quotes/${id}/pdf?type=${type}`),
+    generatePDF: (id, type) => api.get(`/quotes/${id}/pdf?type=${type}`, { responseType: 'blob' }),
     getMetalPrices: () => api.get('/admin/metal-prices'),
 };
 

@@ -16,7 +16,7 @@ import { PRICING_DEFAULTS } from '../../constants/pricingDefaults';
 const QuoteBuilder = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { clients, metalPrices, showNotification } = useApp();
+    const { clients, metalPrices, showNotification, isAdmin } = useApp();
     const [activeTab, setActiveTab] = useState('metal');
 
     const [quote, setQuote] = useState({
@@ -30,25 +30,21 @@ const QuoteBuilder = () => {
         metal_markup: 0,
         stone_markup: 0,
         findings_markup: 0,
-        // Add other fields as needed
     });
 
-    // Use the custom hook for calculations
     const { sections, totals } = useQuoteCalculations(quote);
 
     useEffect(() => {
         if (id && id !== 'new') {
             loadQuote(id);
         } else {
-            // Check for client_id in URL params
             const params = new URLSearchParams(window.location.search);
             const clientIdParam = params.get('client_id');
             if (clientIdParam) {
-                // Simulate event to trigger handleInputChange logic (which handles pricing defaults)
                 handleInputChange({ target: { name: 'client_id', value: clientIdParam } });
             }
         }
-    }, [id, clients]); // Add clients to dependency to ensure they are loaded
+    }, [id, clients]);
 
     const loadQuote = async (quoteId) => {
         try {
@@ -63,12 +59,9 @@ const QuoteBuilder = () => {
         const { name, value } = e.target;
 
         if (name === 'client_id') {
-            // Find selected client
             const selectedClient = clients.find(c => c.id.toString() === value.toString());
 
             if (selectedClient) {
-                // Merge client-specific pricing or fall back to defaults
-                // Note: client.pricing_template might be empty or partial
                 const clientPricing = selectedClient.pricing_template || {};
 
                 const newPricing = {
@@ -122,6 +115,30 @@ const QuoteBuilder = () => {
         return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(amount);
     };
 
+    const handleDownloadPDF = async (type = 'client') => {
+        try {
+            if (!id || id === 'new') {
+                showNotification('Please save the quote first', 'warning');
+                return;
+            }
+
+            const response = await quotesAPI.generatePDF(id, type);
+
+            const blob = new Blob([response.data], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${type}-${quote.quote_number || id}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('PDF Generation Error:', error);
+            showNotification('Failed to generate PDF', 'error');
+        }
+    };
+
     return (
         <div className="min-h-screen bg-surface-alt flex flex-col">
             <header className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-10">
@@ -137,6 +154,24 @@ const QuoteBuilder = () => {
                         </h1>
                     </div>
                     <div className="flex space-x-3">
+                        {id && id !== 'new' && (
+                            <>
+                                <button
+                                    onClick={() => handleDownloadPDF('client')}
+                                    className="px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                >
+                                    Client PDF
+                                </button>
+                                {isAdmin && (
+                                    <button
+                                        onClick={() => handleDownloadPDF('admin')}
+                                        className="px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                    >
+                                        Admin PDF
+                                    </button>
+                                )}
+                            </>
+                        )}
                         <button onClick={() => navigate('/dashboard')} className="btn-secondary">
                             Cancel
                         </button>
@@ -159,7 +194,6 @@ const QuoteBuilder = () => {
             <main className="flex-grow max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-6">
                     <div className="card overflow-hidden">
-                        {/* Client Selection */}
                         <div className="p-6 border-b border-gray-100">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Client</label>
                             <select
@@ -177,10 +211,9 @@ const QuoteBuilder = () => {
                             </select>
                         </div>
 
-                        {/* Tabs */}
                         <div className="border-b border-gray-200 bg-gray-50/50">
                             <nav className="-mb-px flex overflow-x-auto" aria-label="Tabs">
-                                {['metal', 'cad', 'manufacturing', 'stone', 'finishing', 'findings'].map((tab) => (
+                                {['metal', 'cad', 'manufacturing', 'setting', 'finishing', 'findings'].map((tab) => (
                                     <button
                                         key={tab}
                                         onClick={() => setActiveTab(tab)}
@@ -195,7 +228,6 @@ const QuoteBuilder = () => {
                             </nav>
                         </div>
 
-                        {/* Tab Content */}
                         <div className="p-6">
                             {activeTab === 'metal' && (
                                 <MetalTab quote={quote} onChange={handleInputChange} metalPrices={metalPrices} />
@@ -206,7 +238,7 @@ const QuoteBuilder = () => {
                             {activeTab === 'manufacturing' && (
                                 <ManufacturingTab quote={quote} onChange={handleInputChange} />
                             )}
-                            {activeTab === 'stone' && (
+                            {activeTab === 'setting' && (
                                 <StoneTab quote={quote} onChange={handleInputChange} />
                             )}
                             {activeTab === 'finishing' && (
@@ -219,7 +251,6 @@ const QuoteBuilder = () => {
                     </div>
                 </div>
 
-                {/* Summary Panel */}
                 <div className="lg:col-span-1">
                     <div className="card sticky top-24 space-y-6">
                         <h2 className="text-xl font-heading font-bold text-primary border-b border-gray-100 pb-4">Quote Summary</h2>
