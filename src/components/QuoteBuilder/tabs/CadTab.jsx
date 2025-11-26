@@ -1,6 +1,11 @@
 import React from 'react';
+import MarkupCanvas from './MarkupCanvas.jsx';
 
 const CadTab = ({ quote, onChange }) => {
+    const handleMarkupChange = (markupData) => {
+        onChange({ target: { name: 'cad_markup_image', value: markupData } });
+    };
+
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
@@ -93,6 +98,18 @@ const CadTab = ({ quote, onChange }) => {
                         className={`mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md ${quote.include_technical_cost !== false ? 'bg-gray-100 text-gray-500' : 'bg-gray-50 text-gray-300'} cursor-not-allowed`}
                     />
                 </div>
+            </div>
+
+            {/* CAD Markup Canvas */}
+            <div className="mt-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">🎨 Design Markup Canvas</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                    Upload reference images and annotate them with design specifications, revisions, and notes.
+                </p>
+                <MarkupCanvas
+                    value={quote.cad_markup_image}
+                    onChange={handleMarkupChange}
+                />
             </div>
         </div>
     );

@@ -1,18 +1,40 @@
 import { useMemo } from 'react';
 
-export const useQuoteCalculations = (quote) => {
+export const useQuoteCalculations = (quote, collectionMode = false, variations = []) => {
     const calculations = useMemo(() => {
         // Helper to safely parse numbers
         const num = (val) => parseFloat(val) || 0;
 
         // 1. Metal Calculations
-        const metalWeight = num(quote.metal_weight);
-        const metalSpotPrice = num(quote.metal_spot_price);
-        const metalWastage = num(quote.metal_wastage);
-        const metalMarkup = num(quote.metal_markup);
+        let metalCost = 0;
+        let metalPrice = 0;
 
-        const metalCost = (metalWeight + (metalWeight * (metalWastage / 100))) * metalSpotPrice;
-        const metalPrice = metalCost * (1 + (metalMarkup / 100));
+        if (collectionMode && variations.length > 0) {
+            // Collection Mode: Sum all enabled variations
+            variations.forEach(variation => {
+                if (!variation.enabled) return;
+
+                const weight = num(variation.metal_weight);
+                const spotPrice = num(variation.metal_spot_price);
+                const wastage = num(variation.metal_wastage);
+                const markup = num(variation.metal_markup);
+
+                const varCost = (weight + (weight * (wastage / 100))) * spotPrice;
+                const varPrice = varCost * (1 + (markup / 100));
+
+                metalCost += varCost;
+                metalPrice += varPrice;
+            });
+        } else {
+            // Standard Mode: Use quote metal fields
+            const metalWeight = num(quote.metal_weight);
+            const metalSpotPrice = num(quote.metal_spot_price);
+            const metalWastage = num(quote.metal_wastage);
+            const metalMarkup = num(quote.metal_markup);
+
+            metalCost = (metalWeight + (metalWeight * (metalWastage / 100))) * metalSpotPrice;
+            metalPrice = metalCost * (1 + (metalMarkup / 100));
+        }
 
         // 2. CAD Calculations
         const cadHours = num(quote.cad_hours);
@@ -87,7 +109,7 @@ export const useQuoteCalculations = (quote) => {
                 margin
             }
         };
-    }, [quote]);
+    }, [quote, collectionMode, variations]);
 
     return calculations;
 };

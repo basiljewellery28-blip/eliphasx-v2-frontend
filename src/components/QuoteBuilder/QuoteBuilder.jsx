@@ -18,6 +18,8 @@ const QuoteBuilder = () => {
     const navigate = useNavigate();
     const { clients, metalPrices, showNotification, isAdmin } = useApp();
     const [activeTab, setActiveTab] = useState('metal');
+    const [collectionMode, setCollectionMode] = useState(false);
+    const [variations, setVariations] = useState([]);
 
     const [quote, setQuote] = useState({
         client_id: '',
@@ -33,9 +35,10 @@ const QuoteBuilder = () => {
         include_rendering_cost: true,
         include_technical_cost: true,
         include_plating_cost: true,
+        cad_markup_image: '',
     });
 
-    const { sections, totals } = useQuoteCalculations(quote);
+    const { sections, totals } = useQuoteCalculations(quote, collectionMode, variations);
 
     useEffect(() => {
         if (id && id !== 'new') {
@@ -140,8 +143,10 @@ const QuoteBuilder = () => {
     };
 
     const handleSave = async (status = 'draft') => {
+        console.log('handleSave called with status:', status);
         try {
             const quoteData = { ...quote, status };
+            console.log('Saving quote data:', quoteData);
 
             if (id && id !== 'new') {
                 await quotesAPI.update(id, quoteData);
@@ -151,6 +156,7 @@ const QuoteBuilder = () => {
             }
             showNotification(`Quote ${status === 'draft' ? 'saved as draft' : 'completed'} successfully`, 'success');
         } catch (error) {
+            console.error('Save Error:', error);
             showNotification('Failed to save quote', 'error');
         }
     };
@@ -274,7 +280,15 @@ const QuoteBuilder = () => {
 
                         <div className="p-6">
                             {activeTab === 'metal' && (
-                                <MetalTab quote={quote} onChange={handleInputChange} metalPrices={metalPrices} />
+                                <MetalTab
+                                    quote={quote}
+                                    onChange={handleInputChange}
+                                    metalPrices={metalPrices}
+                                    collectionMode={collectionMode}
+                                    setCollectionMode={setCollectionMode}
+                                    variations={variations}
+                                    setVariations={setVariations}
+                                />
                             )}
                             {activeTab === 'cad' && (
                                 <CadTab quote={quote} onChange={handleInputChange} />
