@@ -17,8 +17,8 @@ export const useQuoteCalculations = (quote) => {
         // 2. CAD Calculations
         const cadHours = num(quote.cad_hours);
         const cadBaseRate = num(quote.cad_base_rate);
-        const cadRendering = num(quote.cad_rendering_cost);
-        const cadTechnical = num(quote.cad_technical_cost);
+        const cadRendering = quote.include_rendering_cost !== false ? num(quote.cad_rendering_cost) : 0;
+        const cadTechnical = quote.include_technical_cost !== false ? num(quote.cad_technical_cost) : 0;
         const cadMarkup = num(quote.cad_markup);
 
         const cadCost = (cadHours * cadBaseRate) + cadRendering + cadTechnical;
@@ -47,7 +47,7 @@ export const useQuoteCalculations = (quote) => {
 
         // 5. Finishing Calculations
         const finishCost = num(quote.finishing_cost);
-        const platingCost = num(quote.plating_cost);
+        const platingCost = quote.include_plating_cost !== false ? num(quote.plating_cost) : 0;
         const finishMarkup = num(quote.finishing_markup);
 
         const finishingCost = finishCost + platingCost;

@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useApp } from '../../contexts/AppContext';
 import { clientsAPI } from '../../services/api';
 
 const ClientManager = () => {
     const { clients, dispatch, showNotification } = useApp();
+    const location = useLocation();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingClient, setEditingClient] = useState(null);
     const [formData, setFormData] = useState({
@@ -25,25 +27,43 @@ const ClientManager = () => {
         }
     });
 
+    // Check for navigation state to open modal automatically
+    useEffect(() => {
+        if (location.state?.openAddModal) {
+            handleOpenModal();
+            // Clear state so it doesn't reopen on refresh (optional, but good practice)
+            window.history.replaceState({}, document.title);
+        }
+    }, [location]);
+
     const handleOpenModal = (client = null) => {
         if (client) {
             setEditingClient(client);
+            let template = client.pricing_template || {};
+            if (typeof template === 'string') {
+                try {
+                    template = JSON.parse(template);
+                } catch (e) {
+                    template = {};
+                }
+            }
+
             setFormData({
                 name: client.name,
                 company: client.company,
                 email: client.email || '',
                 phone: client.phone || '',
                 pricing_template: {
-                    metal_markup: client.pricing_template?.metal_markup ?? 50,
-                    metal_wastage: client.pricing_template?.metal_wastage ?? 10,
-                    cad_base_rate: client.pricing_template?.cad_base_rate ?? 850,
-                    cad_markup: client.pricing_template?.cad_markup ?? 100,
-                    manufacturing_base_rate: client.pricing_template?.manufacturing_base_rate ?? 650,
-                    manufacturing_markup: client.pricing_template?.manufacturing_markup ?? 100,
-                    stone_markup: client.pricing_template?.stone_markup ?? 50,
-                    finishing_cost: client.pricing_template?.finishing_cost ?? 350,
-                    finishing_markup: client.pricing_template?.finishing_markup ?? 100,
-                    findings_markup: client.pricing_template?.findings_markup ?? 50
+                    metal_markup: template.metal_markup ?? 50,
+                    metal_wastage: template.metal_wastage ?? 10,
+                    cad_base_rate: template.cad_base_rate ?? 850,
+                    cad_markup: template.cad_markup ?? 100,
+                    manufacturing_base_rate: template.manufacturing_base_rate ?? 650,
+                    manufacturing_markup: template.manufacturing_markup ?? 100,
+                    stone_markup: template.stone_markup ?? 50,
+                    finishing_cost: template.finishing_cost ?? 350,
+                    finishing_markup: template.finishing_markup ?? 100,
+                    findings_markup: template.findings_markup ?? 50
                 }
             });
         } else {
@@ -71,7 +91,7 @@ const ClientManager = () => {
                 ...prev,
                 pricing_template: {
                     ...prev.pricing_template,
-                    [field]: parseFloat(value) || 0
+                    [field]: value // Store as string to allow decimals/typing
                 }
             }));
         } else {
@@ -85,9 +105,18 @@ const ClientManager = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            // Parse numbers before sending
+            const dataToSend = {
+                ...formData,
+                pricing_template: Object.entries(formData.pricing_template).reduce((acc, [key, val]) => ({
+                    ...acc,
+                    [key]: parseFloat(val) || 0
+                }), {})
+            };
+
             let response;
             if (editingClient) {
-                response = await clientsAPI.update(editingClient.id, formData);
+                response = await clientsAPI.update(editingClient.id, dataToSend);
                 const updatedClient = response.data.client;
                 dispatch({
                     type: 'SET_CLIENTS',
@@ -95,7 +124,7 @@ const ClientManager = () => {
                 });
                 showNotification('Client updated successfully', 'success');
             } else {
-                response = await clientsAPI.create(formData);
+                response = await clientsAPI.create(dataToSend);
                 const createdClient = response.data.client;
                 dispatch({
                     type: 'SET_CLIENTS',
@@ -135,12 +164,41 @@ const ClientManager = () => {
                                         <p className="text-sm text-gray-900">{client.profile_number}</p>
                                         <p className="text-sm text-gray-500">Markup: {client.pricing_template?.metal_markup || 50}%</p>
                                     </div>
-                                    <button
-                                        onClick={() => handleOpenModal(client)}
-                                        className="text-secondary hover:text-secondary-dark font-medium text-sm"
-                                    >
-                                        Edit
-                                    </button>
+                                    {['admin', 'manager'].includes(useApp().user?.role) && (
+                                        <>
+                                            {!client.is_verified && (
+                                                <button
+                                                    onClick={async () => {
+                                                        try {
+                                                            const response = await clientsAPI.verify(client.id);
+                                                            const updatedClient = response.data.client;
+                                                            dispatch({
+                                                                type: 'SET_CLIENTS',
+                                                                payload: clients.map(c => c.id === updatedClient.id ? updatedClient : c)
+                                                            });
+                                                            showNotification('Client verified successfully', 'success');
+                                                        } catch (error) {
+                                                            showNotification('Failed to verify client', 'error');
+                                                        }
+                                                    }}
+                                                    className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium hover:bg-green-200 mr-2"
+                                                >
+                                                    Verify
+                                                </button>
+                                            )}
+                                            {client.is_verified && (
+                                                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium mr-2">
+                                                    Verified
+                                                </span>
+                                            )}
+                                            <button
+                                                onClick={() => handleOpenModal(client)}
+                                                className="text-secondary hover:text-secondary-dark font-medium text-sm"
+                                            >
+                                                Edit
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </li>

@@ -69,8 +69,8 @@ const MetalTab = ({ quote, onChange, metalPrices }) => {
                         type="number"
                         name="metal_wastage"
                         value={quote.metal_wastage}
-                        onChange={onChange}
-                        className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                        readOnly
+                        className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
                     />
                 </div>
 
@@ -80,8 +80,8 @@ const MetalTab = ({ quote, onChange, metalPrices }) => {
                         type="number"
                         name="metal_markup"
                         value={quote.metal_markup}
-                        onChange={onChange}
-                        className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                        readOnly
+                        className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
                     />
                 </div>
             </div>

@@ -30,6 +30,9 @@ const QuoteBuilder = () => {
         metal_markup: 0,
         stone_markup: 0,
         findings_markup: 0,
+        include_rendering_cost: true,
+        include_technical_cost: true,
+        include_plating_cost: true,
     });
 
     const { sections, totals } = useQuoteCalculations(quote);
@@ -38,11 +41,52 @@ const QuoteBuilder = () => {
         if (id && id !== 'new') {
             loadQuote(id);
         } else {
+            // Initialize new quote
             const params = new URLSearchParams(window.location.search);
             const clientIdParam = params.get('client_id');
+
+            let initialQuote = {
+                client_id: '',
+                piece_category: '',
+                brief_id: '',
+                metal_type: '',
+                metal_weight: 0,
+                metal_spot_price: 0,
+                metal_wastage: 10,
+                metal_markup: 0,
+                stone_markup: 0,
+                findings_markup: 0,
+                include_rendering_cost: true,
+                include_technical_cost: true,
+                include_plating_cost: true,
+            };
+
             if (clientIdParam) {
-                handleInputChange({ target: { name: 'client_id', value: clientIdParam } });
+                const selectedClient = clients.find(c => c.id.toString() === clientIdParam.toString());
+                if (selectedClient) {
+                    const clientPricing = selectedClient.pricing_template || {};
+                    initialQuote = {
+                        ...initialQuote,
+                        client_id: clientIdParam,
+                        metal_wastage: clientPricing.metal_wastage ?? PRICING_DEFAULTS.metal_wastage,
+                        metal_markup: clientPricing.metal_markup ?? PRICING_DEFAULTS.metal_markup,
+                        cad_base_rate: clientPricing.cad_base_rate ?? PRICING_DEFAULTS.cad_base_rate,
+                        cad_rendering_cost: clientPricing.cad_rendering_cost ?? PRICING_DEFAULTS.cad_rendering_cost,
+                        cad_technical_cost: clientPricing.cad_technical_cost ?? PRICING_DEFAULTS.cad_technical_cost,
+                        cad_markup: clientPricing.cad_markup ?? PRICING_DEFAULTS.cad_markup,
+                        manufacturing_base_rate: clientPricing.manufacturing_base_rate ?? PRICING_DEFAULTS.manufacturing_base_rate,
+                        manufacturing_markup: clientPricing.manufacturing_markup ?? PRICING_DEFAULTS.manufacturing_markup,
+                        stone_markup: clientPricing.stone_markup ?? PRICING_DEFAULTS.stone_markup,
+                        finishing_cost: clientPricing.finishing_cost ?? PRICING_DEFAULTS.finishing_cost,
+                        plating_cost: clientPricing.plating_cost ?? PRICING_DEFAULTS.plating_cost,
+                        finishing_markup: clientPricing.finishing_markup ?? PRICING_DEFAULTS.finishing_markup,
+                        findings_markup: clientPricing.findings_markup ?? PRICING_DEFAULTS.findings_markup,
+                    };
+                }
             }
+
+            setQuote(initialQuote);
+            setActiveTab('metal');
         }
     }, [id, clients]);
 

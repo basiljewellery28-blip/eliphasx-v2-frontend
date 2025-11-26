@@ -1,10 +1,11 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppProvider, useApp } from './contexts/AppContext';
 import Login from './components/Auth/Login';
 import Dashboard from './components/Dashboard/Dashboard';
 import QuoteBuilder from './components/QuoteBuilder/QuoteBuilder';
 import ClientManager from './components/ClientManager/ClientManager';
+import ClientProfile from './components/ClientManager/ClientProfile';
 import AdminPanel from './components/Admin/AdminPanel';
 import UserProfile from './components/User/UserProfile';
 
@@ -16,6 +17,12 @@ const ProtectedRoute = ({ children }) => {
     if (!user) return <Navigate to="/login" />;
 
     return children;
+};
+
+// Wrapper for QuoteBuilder to force remount on URL change
+const QuoteBuilderWrapper = () => {
+    const location = useLocation();
+    return <QuoteBuilder key={location.pathname + location.search} />;
 };
 
 function AppRoutes() {
@@ -34,7 +41,7 @@ function AppRoutes() {
                 path="/quote/new"
                 element={
                     <ProtectedRoute>
-                        <QuoteBuilder />
+                        <QuoteBuilderWrapper />
                     </ProtectedRoute>
                 }
             />
@@ -42,7 +49,7 @@ function AppRoutes() {
                 path="/quote/:id"
                 element={
                     <ProtectedRoute>
-                        <QuoteBuilder />
+                        <QuoteBuilderWrapper />
                     </ProtectedRoute>
                 }
             />
@@ -51,6 +58,14 @@ function AppRoutes() {
                 element={
                     <ProtectedRoute>
                         <ClientManager />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/clients/:id"
+                element={
+                    <ProtectedRoute>
+                        <ClientProfile />
                     </ProtectedRoute>
                 }
             />

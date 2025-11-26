@@ -11,6 +11,13 @@ const AdminPanel = () => {
         return <div className="p-6 text-red-600">Access Denied</div>;
     }
 
+    // Sync local state with context when metalPrices are loaded
+    React.useEffect(() => {
+        if (metalPrices.length > 0 && prices.length === 0) {
+            setPrices(metalPrices);
+        }
+    }, [metalPrices, prices.length]);
+
     const handlePriceChange = (index, value) => {
         const newPrices = [...prices];
         newPrices[index] = { ...newPrices[index], price: parseFloat(value) };

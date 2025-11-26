@@ -33,13 +33,19 @@ export const authAPI = {
     register: (userData) => api.post('/auth/register', userData),
 };
 
-export const clientsAPI = {
+export const clientAPI = {
     getAll: () => api.get('/clients'),
     getById: (id) => api.get(`/clients/${id}`),
     create: (clientData) => api.post('/clients', clientData),
     update: (id, clientData) => api.put(`/clients/${id}`, clientData),
     delete: (id) => api.delete(`/clients/${id}`),
+    getUnverifiedCount: () => api.get('/clients/unverified-count'),
+    verify: (id) => api.put(`/clients/${id}/verify`),
+    getStats: (id) => api.get(`/clients/${id}/stats`),
 };
+
+// Alias for backward compatibility if needed, though Dashboard uses clientAPI
+export const clientsAPI = clientAPI;
 
 export const quotesAPI = {
     getAll: () => api.get('/quotes'),
@@ -57,6 +63,10 @@ export const adminAPI = {
     updateStonePrices: (prices) => api.put('/admin/stone-prices', { prices }),
     getUsers: () => api.get('/admin/users'),
     createUser: (userData) => api.post('/admin/users', userData),
+};
+
+export const searchAPI = {
+    search: (query) => api.get(`/search?q=${encodeURIComponent(query)}`),
 };
 
 export default api;

@@ -83,8 +83,8 @@ const StoneTab = ({ quote, onChange }) => {
                             type="number"
                             name="stone_markup"
                             value={quote.stone_markup || 0}
-                            onChange={onChange}
-                            className="w-20 py-1 px-2 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                            readOnly
+                            className="w-20 py-1 px-2 text-sm border border-gray-300 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
                         />
                     </div>
                     <button

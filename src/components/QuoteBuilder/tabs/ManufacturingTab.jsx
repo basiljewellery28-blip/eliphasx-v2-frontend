@@ -35,9 +35,9 @@ const ManufacturingTab = ({ quote, onChange }) => {
                     <input
                         type="number"
                         name="manufacturing_base_rate"
-                        value={quote.manufacturing_base_rate || 650}
-                        onChange={onChange}
-                        className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                        value={quote.manufacturing_base_rate}
+                        readOnly
+                        className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
                     />
                 </div>
 
@@ -46,9 +46,9 @@ const ManufacturingTab = ({ quote, onChange }) => {
                     <input
                         type="number"
                         name="manufacturing_markup"
-                        value={quote.manufacturing_markup || 0}
-                        onChange={onChange}
-                        className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                        value={quote.manufacturing_markup}
+                        readOnly
+                        className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
                     />
                 </div>
             </div>

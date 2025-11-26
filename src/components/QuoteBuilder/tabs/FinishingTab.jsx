@@ -25,9 +25,9 @@ const FinishingTab = ({ quote, onChange }) => {
                     <input
                         type="number"
                         name="finishing_cost"
-                        value={quote.finishing_cost || 350}
-                        onChange={onChange}
-                        className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                        value={quote.finishing_cost}
+                        readOnly
+                        className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
                     />
                 </div>
 
@@ -48,13 +48,25 @@ const FinishingTab = ({ quote, onChange }) => {
                 </div>
 
                 <div className="sm:col-span-3">
-                    <label className="block text-sm font-medium text-gray-700">Plating Cost</label>
+                    <div className="flex justify-between items-center mb-1">
+                        <label className="block text-sm font-medium text-gray-700">Plating Cost</label>
+                        <div className="flex items-center">
+                            <input
+                                type="checkbox"
+                                name="include_plating_cost"
+                                checked={quote.include_plating_cost !== false}
+                                onChange={(e) => onChange({ target: { name: 'include_plating_cost', value: e.target.checked } })}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <span className="ml-2 text-xs text-gray-500">Include</span>
+                        </div>
+                    </div>
                     <input
                         type="number"
                         name="plating_cost"
-                        value={quote.plating_cost || 0}
-                        onChange={onChange}
-                        className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                        value={quote.plating_cost}
+                        readOnly
+                        className={`mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md ${quote.include_plating_cost !== false ? 'bg-gray-100 text-gray-500' : 'bg-gray-50 text-gray-300'} cursor-not-allowed`}
                     />
                 </div>
 
@@ -63,9 +75,9 @@ const FinishingTab = ({ quote, onChange }) => {
                     <input
                         type="number"
                         name="finishing_markup"
-                        value={quote.finishing_markup || 0}
-                        onChange={onChange}
-                        className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                        value={quote.finishing_markup}
+                        readOnly
+                        className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
                     />
                 </div>
             </div>

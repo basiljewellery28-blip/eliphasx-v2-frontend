@@ -1,14 +1,37 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../../contexts/AppContext';
+import { clientAPI } from '../../services/api';
+
+import GlobalSearch from '../Search/GlobalSearch';
 
 const Dashboard = () => {
     const { user, quotes, clients, logout, loadInitialData } = useApp();
     const navigate = useNavigate();
+    const [unverifiedCount, setUnverifiedCount] = useState(0);
+    const [selectedClientId, setSelectedClientId] = useState('');
 
     useEffect(() => {
         loadInitialData(true);
     }, []);
+
+    // Poll for unverified clients (Admin/Manager only)
+    useEffect(() => {
+        if (user && ['admin', 'manager'].includes(user.role)) {
+            const fetchCount = async () => {
+                try {
+                    const response = await clientAPI.getUnverifiedCount();
+                    setUnverifiedCount(response.data.count);
+                } catch (error) {
+                    console.error('Failed to fetch unverified count', error);
+                }
+            };
+
+            fetchCount();
+            const interval = setInterval(fetchCount, 30000); // Poll every 30s
+            return () => clearInterval(interval);
+        }
+    }, [user]);
 
     const draftQuotes = quotes.filter(q => q.status === 'draft');
     const completedQuotes = quotes.filter(q => q.status === 'completed');
@@ -19,9 +42,25 @@ const Dashboard = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-16">
                         <div className="flex items-center">
-                            <h1 className="text-2xl font-heading font-bold text-primary">ELIPHASx</h1>
+                            <h1 className="text-2xl font-heading font-bold text-primary mr-8">ELIPHASx</h1>
+                            <div className="hidden md:block w-96">
+                                <GlobalSearch />
+                            </div>
                         </div>
                         <div className="flex items-center space-x-4">
+                            {['admin', 'manager'].includes(user?.role) && (
+                                <Link to="/clients" className="relative p-2 text-gray-400 hover:text-gray-500">
+                                    <span className="sr-only">View notifications</span>
+                                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                    </svg>
+                                    {unverifiedCount > 0 && (
+                                        <span className="absolute top-0 right-0 block h-4 w-4 rounded-full ring-2 ring-white bg-red-500 text-xs text-white font-bold flex items-center justify-center">
+                                            {unverifiedCount}
+                                        </span>
+                                    )}
+                                </Link>
+                            )}
                             <span className="text-sm text-gray-500 font-medium">Welcome, {user?.email}</span>
                             <Link to="/profile" className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
                                 Profile
@@ -67,24 +106,32 @@ const Dashboard = () => {
                     <div className="flex items-center gap-3 w-full sm:w-auto">
                         <select
                             className="input-field w-full sm:w-64"
-                            onChange={(e) => {
-                                if (e.target.value) {
-                                    navigate(`/quote/new?client_id=${e.target.value}`);
-                                }
-                            }}
-                            defaultValue=""
+                            onChange={(e) => setSelectedClientId(e.target.value)}
+                            value={selectedClientId}
                         >
-                            <option value="" disabled>Select Client...</option>
+                            <option value="">Select Client...</option>
                             {clients.map(client => (
                                 <option key={client.id} value={client.id}>{client.name}</option>
                             ))}
                         </select>
-                        <Link
-                            to="/quote/new"
+                        <button
+                            onClick={() => {
+                                if (selectedClientId) {
+                                    navigate(`/quote/new?client_id=${selectedClientId}`);
+                                } else {
+                                    navigate('/quote/new');
+                                }
+                            }}
                             className="btn-primary whitespace-nowrap"
                         >
                             Start Blank
-                        </Link>
+                        </button>
+                        <button
+                            onClick={() => navigate('/clients', { state: { openAddModal: true } })}
+                            className="bg-white text-blue-600 border border-blue-200 px-4 py-2 rounded-md hover:bg-blue-50 font-medium whitespace-nowrap transition-colors"
+                        >
+                            + Add Client
+                        </button>
                     </div>
                 </div>
 

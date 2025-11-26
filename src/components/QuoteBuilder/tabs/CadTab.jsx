@@ -20,9 +20,9 @@ const CadTab = ({ quote, onChange }) => {
                     <input
                         type="number"
                         name="cad_base_rate"
-                        value={quote.cad_base_rate || 850}
-                        onChange={onChange}
-                        className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                        value={quote.cad_base_rate}
+                        readOnly
+                        className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
                     />
                 </div>
 
@@ -42,31 +42,55 @@ const CadTab = ({ quote, onChange }) => {
                     <input
                         type="number"
                         name="cad_markup"
-                        value={quote.cad_markup || 0}
-                        onChange={onChange}
-                        className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                        value={quote.cad_markup}
+                        readOnly
+                        className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
                     />
                 </div>
 
                 <div className="sm:col-span-3">
-                    <label className="block text-sm font-medium text-gray-700">Rendering Cost</label>
+                    <div className="flex justify-between items-center mb-1">
+                        <label className="block text-sm font-medium text-gray-700">Rendering Cost</label>
+                        <div className="flex items-center">
+                            <input
+                                type="checkbox"
+                                name="include_rendering_cost"
+                                checked={quote.include_rendering_cost !== false}
+                                onChange={(e) => onChange({ target: { name: 'include_rendering_cost', value: e.target.checked } })}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <span className="ml-2 text-xs text-gray-500">Include</span>
+                        </div>
+                    </div>
                     <input
                         type="number"
                         name="cad_rendering_cost"
-                        value={quote.cad_rendering_cost || 450}
-                        onChange={onChange}
-                        className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                        value={quote.cad_rendering_cost}
+                        readOnly
+                        className={`mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md ${quote.include_rendering_cost !== false ? 'bg-gray-100 text-gray-500' : 'bg-gray-50 text-gray-300'} cursor-not-allowed`}
                     />
                 </div>
 
                 <div className="sm:col-span-3">
-                    <label className="block text-sm font-medium text-gray-700">Technical Cost</label>
+                    <div className="flex justify-between items-center mb-1">
+                        <label className="block text-sm font-medium text-gray-700">Technical Cost</label>
+                        <div className="flex items-center">
+                            <input
+                                type="checkbox"
+                                name="include_technical_cost"
+                                checked={quote.include_technical_cost !== false}
+                                onChange={(e) => onChange({ target: { name: 'include_technical_cost', value: e.target.checked } })}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <span className="ml-2 text-xs text-gray-500">Include</span>
+                        </div>
+                    </div>
                     <input
                         type="number"
                         name="cad_technical_cost"
-                        value={quote.cad_technical_cost || 750}
-                        onChange={onChange}
-                        className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                        value={quote.cad_technical_cost}
+                        readOnly
+                        className={`mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md ${quote.include_technical_cost !== false ? 'bg-gray-100 text-gray-500' : 'bg-gray-50 text-gray-300'} cursor-not-allowed`}
                     />
                 </div>
             </div>
