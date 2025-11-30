@@ -1,7 +1,7 @@
 import React from 'react';
 import CollectionMode from './CollectionMode.jsx';
 
-const MetalTab = ({ quote, onChange, metalPrices, collectionMode, setCollectionMode, variations, setVariations }) => {
+const MetalTab = ({ quote, onChange, metalPrices, collectionMode, setCollectionMode, variations, setVariations, showValidation }) => {
     return (
         <div className="space-y-6">
             {/* Piece Description Section */}
@@ -96,7 +96,7 @@ const MetalTab = ({ quote, onChange, metalPrices, collectionMode, setCollectionM
                                     });
                                 }
                             }}
-                            className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                            className={`mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${showValidation && !quote.metal_type ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                         >
                             <option value="">Select Metal</option>
                             {metalPrices.map(m => (
@@ -114,7 +114,7 @@ const MetalTab = ({ quote, onChange, metalPrices, collectionMode, setCollectionM
                             name="metal_weight"
                             value={quote.metal_weight}
                             onChange={onChange}
-                            className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                            className={`mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md ${showValidation && !quote.metal_weight ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                         />
                     </div>
 

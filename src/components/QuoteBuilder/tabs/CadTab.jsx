@@ -1,7 +1,7 @@
 import React from 'react';
 import MarkupCanvas from './MarkupCanvas.jsx';
 
-const CadTab = ({ quote, onChange }) => {
+const CadTab = ({ quote, onChange, showValidation }) => {
     const handleMarkupChange = (markupData) => {
         onChange({ target: { name: 'cad_markup_image', value: markupData } });
     };

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const FinishingTab = ({ quote, onChange }) => {
+const FinishingTab = ({ quote, onChange, showValidation }) => {
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">

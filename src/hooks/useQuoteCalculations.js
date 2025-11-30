@@ -96,9 +96,9 @@ export const useQuoteCalculations = (quote, collectionMode = false, variations =
         return {
             sections: {
                 metal: { cost: metalCost, price: metalPrice },
+                stones: { cost: stoneCost, price: stonePrice },
                 cad: { cost: cadCost, price: cadPrice },
                 manufacturing: { cost: mfgCost, price: mfgPrice },
-                stones: { cost: stoneCost, price: stonePrice },
                 finishing: { cost: finishingCost, price: finishingPrice },
                 findings: { cost: findingsCost, price: findingsPrice },
             },

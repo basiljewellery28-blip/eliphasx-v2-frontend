@@ -20,6 +20,7 @@ const QuoteBuilder = () => {
     const [activeTab, setActiveTab] = useState('metal');
     const [collectionMode, setCollectionMode] = useState(false);
     const [variations, setVariations] = useState([]);
+    const [showValidation, setShowValidation] = useState(false);
 
     const [quote, setQuote] = useState({
         client_id: '',
@@ -32,9 +33,9 @@ const QuoteBuilder = () => {
         metal_markup: 0,
         stone_markup: 0,
         findings_markup: 0,
-        include_rendering_cost: true,
-        include_technical_cost: true,
-        include_plating_cost: true,
+        include_rendering_cost: false,
+        include_technical_cost: false,
+        include_plating_cost: false,
         cad_markup_image: '',
     });
 
@@ -59,9 +60,9 @@ const QuoteBuilder = () => {
                 metal_markup: 0,
                 stone_markup: 0,
                 findings_markup: 0,
-                include_rendering_cost: true,
-                include_technical_cost: true,
-                include_plating_cost: true,
+                include_rendering_cost: false,
+                include_technical_cost: false,
+                include_plating_cost: false,
             };
 
             if (clientIdParam) {
@@ -143,18 +144,31 @@ const QuoteBuilder = () => {
     };
 
     const handleSave = async (status = 'draft') => {
-        console.log('handleSave called with status:', status);
+        // Validation Check
+        if (!quote.client_id || !quote.metal_type || (!quote.metal_weight && !collectionMode)) {
+            setShowValidation(true);
+            showNotification('Please fill in all required fields (marked in red)', 'error');
+            return;
+        }
+
         try {
             const quoteData = { ...quote, status };
-            console.log('Saving quote data:', quoteData);
 
             if (id && id !== 'new') {
                 await quotesAPI.update(id, quoteData);
             } else {
                 const response = await quotesAPI.create(quoteData);
-                navigate(`/quote/${response.data.quote.id}`);
+                // If we just created a draft, go to edit mode. If completed, go to dashboard.
+                if (status === 'draft') {
+                    navigate(`/quote/${response.data.quote.id}`);
+                }
             }
+
             showNotification(`Quote ${status === 'draft' ? 'saved as draft' : 'completed'} successfully`, 'success');
+
+            if (status === 'completed') {
+                navigate('/dashboard');
+            }
         } catch (error) {
             console.error('Save Error:', error);
             showNotification('Failed to save quote', 'error');
@@ -199,8 +213,8 @@ const QuoteBuilder = () => {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                             </svg>
                         </button>
-                        <h1 className="text-2xl font-heading font-bold text-primary">
-                            {id === 'new' ? 'New Quote' : `Quote ${quote.quote_number || ''}`}
+                        <h1 className="text-2xl font-display font-bold text-gray-900">
+                            {id === 'new' ? 'New Quote' : `Quote #${quote.quote_number || 'DRAFT'}`}
                         </h1>
                     </div>
                     <div className="flex space-x-3">
@@ -222,9 +236,6 @@ const QuoteBuilder = () => {
                                 )}
                             </>
                         )}
-                        <button onClick={() => navigate('/dashboard')} className="btn-secondary">
-                            Cancel
-                        </button>
                         <button
                             onClick={() => handleSave('draft')}
                             className="px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -233,7 +244,7 @@ const QuoteBuilder = () => {
                         </button>
                         <button
                             onClick={() => handleSave('completed')}
-                            className="btn-primary"
+                            className="px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                         >
                             Complete Quote
                         </button>
@@ -241,102 +252,95 @@ const QuoteBuilder = () => {
                 </div>
             </header>
 
-            <main className="flex-grow max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-6">
-                    <div className="card overflow-hidden">
-                        <div className="p-6 border-b border-gray-100">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Client</label>
+            <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Main Content */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Client Selection */}
+                        <div className="bg-white shadow rounded-lg p-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Client</label>
                             <select
                                 name="client_id"
                                 value={quote.client_id}
                                 onChange={handleInputChange}
-                                className="input-field"
+                                className={`block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md ${showValidation && !quote.client_id ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                             >
-                                <option value="">Select a client</option>
+                                <option value="">Select a Client</option>
                                 {clients.map(client => (
-                                    <option key={client.id} value={client.id}>
-                                        {client.name} ({client.company})
-                                    </option>
+                                    <option key={client.id} value={client.id}>{client.name}</option>
                                 ))}
                             </select>
                         </div>
 
-                        <div className="border-b border-gray-200 bg-gray-50/50">
-                            <nav className="-mb-px flex overflow-x-auto" aria-label="Tabs">
-                                {['metal', 'cad', 'manufacturing', 'setting', 'finishing', 'findings'].map((tab) => (
-                                    <button
-                                        key={tab}
-                                        onClick={() => setActiveTab(tab)}
-                                        className={`${activeTab === tab
-                                            ? 'border-secondary text-secondary bg-white'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-                                            } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm capitalize transition-colors duration-200 flex-1 sm:flex-none text-center`}
-                                    >
-                                        {tab}
-                                    </button>
-                                ))}
-                            </nav>
-                        </div>
+                        {/* Tabs Navigation */}
+                        <div className="bg-white shadow rounded-lg overflow-hidden">
+                            <div className="border-b border-gray-200">
+                                <nav className="-mb-px flex overflow-x-auto" aria-label="Tabs">
+                                    {['metal', 'stones', 'cad', 'manufacturing', 'finishing', 'findings'].map((tab) => (
+                                        <button
+                                            key={tab}
+                                            onClick={() => setActiveTab(tab)}
+                                            className={`${activeTab === tab
+                                                ? 'border-blue-500 text-blue-600'
+                                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                                } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm capitalize transition-colors duration-200`}
+                                        >
+                                            {tab}
+                                        </button>
+                                    ))}
+                                </nav>
+                            </div>
 
-                        <div className="p-6">
-                            {activeTab === 'metal' && (
-                                <MetalTab
-                                    quote={quote}
-                                    onChange={handleInputChange}
-                                    metalPrices={metalPrices}
-                                    collectionMode={collectionMode}
-                                    setCollectionMode={setCollectionMode}
-                                    variations={variations}
-                                    setVariations={setVariations}
-                                />
-                            )}
-                            {activeTab === 'cad' && (
-                                <CadTab quote={quote} onChange={handleInputChange} />
-                            )}
-                            {activeTab === 'manufacturing' && (
-                                <ManufacturingTab quote={quote} onChange={handleInputChange} />
-                            )}
-                            {activeTab === 'setting' && (
-                                <StoneTab quote={quote} onChange={handleInputChange} />
-                            )}
-                            {activeTab === 'finishing' && (
-                                <FinishingTab quote={quote} onChange={handleInputChange} />
-                            )}
-                            {activeTab === 'findings' && (
-                                <FindingsTab quote={quote} onChange={handleInputChange} />
-                            )}
+                            <div className="p-6">
+                                {activeTab === 'metal' && (
+                                    <MetalTab
+                                        quote={quote}
+                                        onChange={handleInputChange}
+                                        metalPrices={metalPrices}
+                                        collectionMode={collectionMode}
+                                        setCollectionMode={setCollectionMode}
+                                        variations={variations}
+                                        setVariations={setVariations}
+                                        showValidation={showValidation}
+                                    />
+                                )}
+                                {activeTab === 'stones' && <StoneTab quote={quote} onChange={handleInputChange} showValidation={showValidation} />}
+                                {activeTab === 'cad' && <CadTab quote={quote} onChange={handleInputChange} showValidation={showValidation} />}
+                                {activeTab === 'manufacturing' && <ManufacturingTab quote={quote} onChange={handleInputChange} showValidation={showValidation} />}
+                                {activeTab === 'finishing' && <FinishingTab quote={quote} onChange={handleInputChange} showValidation={showValidation} />}
+                                {activeTab === 'findings' && <FindingsTab quote={quote} onChange={handleInputChange} showValidation={showValidation} />}
+                            </div>
                         </div>
                     </div>
-                </div>
+                    <div className="lg:col-span-1">
+                        <div className="card sticky top-24 space-y-6">
+                            <h2 className="text-xl font-heading font-bold text-primary border-b border-gray-100 pb-4">Quote Summary</h2>
 
-                <div className="lg:col-span-1">
-                    <div className="card sticky top-24 space-y-6">
-                        <h2 className="text-xl font-heading font-bold text-primary border-b border-gray-100 pb-4">Quote Summary</h2>
-
-                        <div className="space-y-4">
-                            {Object.entries(sections).map(([key, value]) => (
-                                <div key={key} className="flex justify-between items-center text-sm">
-                                    <span className="capitalize text-gray-600">{key}</span>
-                                    <div className="text-right">
-                                        <div className="font-medium text-gray-900">{formatCurrency(value.price)}</div>
-                                        <div className="text-xs text-gray-400">Cost: {formatCurrency(value.cost)}</div>
+                            <div className="space-y-4">
+                                {Object.entries(sections).map(([key, value]) => (
+                                    <div key={key} className="flex justify-between items-center text-sm">
+                                        <span className="capitalize text-gray-600">{key}</span>
+                                        <div className="text-right">
+                                            <div className="font-medium text-gray-900">{formatCurrency(value.price)}</div>
+                                            <div className="text-xs text-gray-400">Cost: {formatCurrency(value.cost)}</div>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
 
-                        <div className="border-t border-gray-100 pt-4 space-y-2">
-                            <div className="flex justify-between items-center text-sm text-gray-500">
-                                <span>Subtotal (Cost)</span>
-                                <span>{formatCurrency(totals.subtotalCost)}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm text-green-600">
-                                <span>Profit ({totals.margin.toFixed(1)}%)</span>
-                                <span>{formatCurrency(totals.profit)}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-xl font-bold text-primary pt-2 border-t border-gray-100 mt-2">
-                                <span>Total Price</span>
-                                <span>{formatCurrency(totals.totalPrice)}</span>
+                            <div className="border-t border-gray-100 pt-4 space-y-2">
+                                <div className="flex justify-between items-center text-sm text-gray-500">
+                                    <span>Subtotal (Cost)</span>
+                                    <span>{formatCurrency(totals.subtotalCost)}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm text-green-600">
+                                    <span>Profit ({totals.margin.toFixed(1)}%)</span>
+                                    <span>{formatCurrency(totals.profit)}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-xl font-bold text-primary pt-2 border-t border-gray-100 mt-2">
+                                    <span>Total Price</span>
+                                    <span>{formatCurrency(totals.totalPrice)}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
