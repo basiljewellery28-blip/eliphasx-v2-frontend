@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useApp } from '../../contexts/AppContext';
 
 const Login = () => {
@@ -7,6 +7,8 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const { login } = useApp();
     const navigate = useNavigate();
+    const location = useLocation();
+    const message = location.state?.message;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -26,6 +28,11 @@ const Login = () => {
                     <p className="mt-2 text-center text-sm text-gray-600">
                         Jewelry Manufacturing System
                     </p>
+                    {message && (
+                        <div className="mt-4 bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md text-sm text-center">
+                            {message}
+                        </div>
+                    )}
                 </div>
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                     <div className="rounded-md shadow-sm -space-y-px">
@@ -65,9 +72,9 @@ const Login = () => {
 
                     <div className="flex items-center justify-between">
                         <div className="text-sm">
-                            <a href="#" className="font-medium text-secondary hover:text-secondary-dark transition-colors">
+                            <Link to="/forgot-password" className="font-medium text-secondary hover:text-secondary-dark transition-colors">
                                 Forgot your password?
-                            </a>
+                            </Link>
                         </div>
                     </div>
 
@@ -82,9 +89,9 @@ const Login = () => {
 
                     <div className="text-center mt-4">
                         <span className="text-sm text-gray-600">Don't have an account? </span>
-                        <a href="#" className="text-sm font-medium text-secondary hover:text-secondary-dark transition-colors">
+                        <Link to="/register" className="text-sm font-medium text-secondary hover:text-secondary-dark transition-colors">
                             Create new account
-                        </a>
+                        </Link>
                     </div>
                 </form>
             </div>

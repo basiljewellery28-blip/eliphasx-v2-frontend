@@ -164,7 +164,7 @@ const ClientManager = () => {
                                         <p className="text-sm text-gray-900">{client.profile_number}</p>
                                         <p className="text-sm text-gray-500">Markup: {client.pricing_template?.metal_markup || 50}%</p>
                                     </div>
-                                    {['admin', 'manager'].includes(useApp().user?.role) && (
+                                    {useApp().user?.role === 'admin' && (
                                         <>
                                             {!client.is_verified && (
                                                 <button

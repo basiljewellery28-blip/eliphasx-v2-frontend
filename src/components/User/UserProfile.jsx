@@ -37,8 +37,10 @@ const UserProfile = () => {
                             {[
                                 { id: 'details', label: 'User Details', icon: 'User' },
                                 { id: 'clients', label: 'Manage Clients', icon: 'Users' },
-                                { id: 'metals', label: 'Manage Metals', icon: 'Database' },
-                                { id: 'stones', label: 'Manage Stones', icon: 'Diamond' },
+                                ...(user.role === 'admin' ? [
+                                    { id: 'metals', label: 'Manage Metals', icon: 'Database' },
+                                    { id: 'stones', label: 'Manage Stones', icon: 'Diamond' },
+                                ] : []),
                             ].map((item) => (
                                 <button
                                     key={item.id}

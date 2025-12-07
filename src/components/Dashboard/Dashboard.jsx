@@ -15,9 +15,9 @@ const Dashboard = () => {
         loadInitialData(true);
     }, []);
 
-    // Poll for unverified clients (Admin/Manager only)
+    // Poll for unverified clients (Admin only)
     useEffect(() => {
-        if (user && ['admin', 'manager'].includes(user.role)) {
+        if (user && user.role === 'admin') {
             const fetchCount = async () => {
                 try {
                     const response = await clientAPI.getUnverifiedCount();
@@ -48,7 +48,7 @@ const Dashboard = () => {
                             </div>
                         </div>
                         <div className="flex items-center space-x-4">
-                            {['admin', 'manager'].includes(user?.role) && (
+                            {user?.role === 'admin' && (
                                 <Link to="/clients" className="relative p-2 text-gray-400 hover:text-gray-500">
                                     <span className="sr-only">View notifications</span>
                                     <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -62,6 +62,12 @@ const Dashboard = () => {
                                 </Link>
                             )}
                             <span className="text-sm text-gray-500 font-medium">Welcome, {user?.email}</span>
+                            <Link to="/billing" className="text-sm font-medium text-secondary hover:text-secondary-dark transition-colors">
+                                Billing
+                            </Link>
+                            <Link to="/organization" className="text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors">
+                                Team
+                            </Link>
                             <Link to="/profile" className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
                                 Profile
                             </Link>
@@ -217,12 +223,9 @@ const Dashboard = () => {
                                             {new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(quote.total || 0)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <Link to={`/quote/${quote.id}`} className="text-secondary hover:text-secondary-dark mr-4">
+                                            <Link to={`/quote/${quote.id}`} className="text-secondary hover:text-secondary-dark font-medium">
                                                 View
                                             </Link>
-                                            <a href={`/api/quotes/${quote.id}/pdf`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
-                                                PDF
-                                            </a>
                                         </td>
                                     </tr>
                                 ))}

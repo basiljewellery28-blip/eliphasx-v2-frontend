@@ -203,6 +203,112 @@ const QuoteBuilder = () => {
         }
     };
 
+    // Read-Only / Print View for Completed Quotes
+    if (quote.status === 'completed') {
+        return (
+            <div className="min-h-screen bg-gray-50 flex flex-col">
+                <header className="bg-white shadow-sm border-b border-gray-100">
+                    <div className="max-w-4xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+                        <div className="flex items-center space-x-4">
+                            <button onClick={() => navigate('/dashboard')} className="text-gray-400 hover:text-gray-600 transition-colors">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                                </svg>
+                            </button>
+                            <h1 className="text-2xl font-bold text-gray-900">
+                                Quote #{quote.quote_number} <span className="text-sm font-normal text-green-600 bg-green-100 px-2 py-1 rounded-full ml-2">Completed</span>
+                            </h1>
+                        </div>
+                    </div>
+                </header>
+
+                <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-12 flex flex-col items-center justify-center space-y-8">
+                    <div className="bg-white shadow-lg rounded-lg p-8 w-full text-center">
+                        <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <h2 className="text-3xl font-bold text-gray-900 mb-2">Quote Completed</h2>
+                        <p className="text-gray-500 mb-8">This quote has been finalized and locked.</p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left mb-8 bg-gray-50 p-6 rounded-lg border border-gray-100">
+                            <div>
+                                <p className="text-sm text-gray-500">Client</p>
+                                <p className="font-semibold text-gray-900">{clients.find(c => c.id === quote.client_id)?.name || 'Unknown Client'}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">Total Value</p>
+                                <p className="font-semibold text-gray-900">{formatCurrency(totals.totalPrice)}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">Date</p>
+                                <p className="font-semibold text-gray-900">{new Date(quote.created_at).toLocaleDateString()}</p>
+                            </div>
+                        </div>
+
+                        {/* Breakdown Summary for Completed Quote */}
+                        <div className="text-left mb-8 bg-gray-50 p-6 rounded-lg border border-gray-100">
+                            <h3 className="text-lg font-bold text-gray-900 border-b border-gray-200 pb-2 mb-4">Quote Breakdown</h3>
+                            <div className="space-y-3">
+                                {Object.entries(sections).map(([key, value]) => (
+                                    <div key={key} className="flex justify-between items-center text-sm">
+                                        <span className="capitalize text-gray-700 font-medium">{key}</span>
+                                        <div className="text-right">
+                                            <div className="font-medium text-gray-900">{formatCurrency(value.price)}</div>
+                                            {isAdmin && <div className="text-xs text-gray-500">Cost: {formatCurrency(value.cost)}</div>}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="border-t border-gray-200 mt-4 pt-4 space-y-2">
+                                {isAdmin && (
+                                    <div className="flex justify-between items-center text-sm text-gray-500">
+                                        <span>Subtotal (Cost)</span>
+                                        <span>{formatCurrency(totals.subtotalCost)}</span>
+                                    </div>
+                                )}
+                                {isAdmin && (
+                                    <div className="flex justify-between items-center text-sm text-green-600">
+                                        <span>Profit ({totals.margin.toFixed(1)}%)</span>
+                                        <span>{formatCurrency(totals.profit)}</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between items-center text-xl font-bold text-primary pt-2 border-t border-gray-200 mt-2">
+                                    <span>Total Price</span>
+                                    <span>{formatCurrency(totals.totalPrice)}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row justify-center gap-4">
+                            <button
+                                onClick={() => handleDownloadPDF('client')}
+                                className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-all duration-200"
+                            >
+                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Download Client PDF
+                            </button>
+                            {isAdmin && (
+                                <button
+                                    onClick={() => handleDownloadPDF('admin')}
+                                    className="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 shadow-sm transition-all duration-200"
+                                >
+                                    <svg className="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    Download Admin PDF
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-surface-alt flex flex-col">
             <header className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-10">

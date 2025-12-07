@@ -2,12 +2,18 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppProvider, useApp } from './contexts/AppContext';
 import Login from './components/Auth/Login';
+import Register from './components/Auth/Register';
+import ForgotPassword from './components/Auth/ForgotPassword';
+import ResetPassword from './components/Auth/ResetPassword';
 import Dashboard from './components/Dashboard/Dashboard';
 import QuoteBuilder from './components/QuoteBuilder/QuoteBuilder';
 import ClientManager from './components/ClientManager/ClientManager';
 import ClientProfile from './components/ClientManager/ClientProfile';
 import AdminPanel from './components/Admin/AdminPanel';
 import UserProfile from './components/User/UserProfile';
+import BillingPage from './components/Billing/BillingPage';
+import OrganizationSettings from './components/Billing/OrganizationSettings';
+import LegalPage from './components/Legal/LegalPage';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
@@ -29,6 +35,9 @@ function AppRoutes() {
     return (
         <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route
                 path="/dashboard"
                 element={
@@ -85,6 +94,23 @@ function AppRoutes() {
                     </ProtectedRoute>
                 }
             />
+            <Route
+                path="/billing"
+                element={
+                    <ProtectedRoute>
+                        <BillingPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/organization"
+                element={
+                    <ProtectedRoute>
+                        <OrganizationSettings />
+                    </ProtectedRoute>
+                }
+            />
+            <Route path="/legal/:document" element={<LegalPage />} />
             <Route path="/" element={<Navigate to="/dashboard" />} />
         </Routes>
     );
