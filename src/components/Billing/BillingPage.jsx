@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { billingAPI } from '../../services/billingService';
 import { useApp } from '../../contexts/AppContext';
 
 const BillingPage = () => {
+    const navigate = useNavigate();
     const { user } = useApp();
     const [billing, setBilling] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -146,7 +148,18 @@ const BillingPage = () => {
         <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="text-center mb-12">
+                <div className="text-center mb-12 relative">
+                    <div className="absolute left-0 top-0">
+                        <button
+                            onClick={() => navigate(-1)}
+                            className="p-2 text-gray-400 hover:text-gray-600 transition-colors bg-white rounded-full shadow-sm border border-gray-100"
+                            title="Go Back"
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                        </button>
+                    </div>
                     <h1 className="text-4xl font-heading font-bold text-primary-dark mb-4">
                         Choose Your Plan
                     </h1>
@@ -168,8 +181,8 @@ const BillingPage = () => {
                                     Current Plan: <span className="font-medium capitalize">{billing.organization.plan}</span>
                                     {' • '}
                                     Status: <span className={`font-medium capitalize ${billing.organization.status === 'active' ? 'text-green-600' :
-                                            billing.organization.status === 'trial' ? 'text-blue-600' :
-                                                'text-red-600'
+                                        billing.organization.status === 'trial' ? 'text-blue-600' :
+                                            'text-red-600'
                                         }`}>{billing.organization.status}</span>
                                 </p>
                                 {billing.daysRemaining !== null && (
@@ -200,8 +213,8 @@ const BillingPage = () => {
                         <button
                             onClick={() => setBillingCycle('monthly')}
                             className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${billingCycle === 'monthly'
-                                    ? 'bg-primary text-white shadow-sm'
-                                    : 'text-gray-600 hover:text-gray-900'
+                                ? 'bg-primary text-white shadow-sm'
+                                : 'text-gray-600 hover:text-gray-900'
                                 }`}
                         >
                             Monthly
@@ -209,8 +222,8 @@ const BillingPage = () => {
                         <button
                             onClick={() => setBillingCycle('annual')}
                             className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${billingCycle === 'annual'
-                                    ? 'bg-primary text-white shadow-sm'
-                                    : 'text-gray-600 hover:text-gray-900'
+                                ? 'bg-primary text-white shadow-sm'
+                                : 'text-gray-600 hover:text-gray-900'
                                 }`}
                         >
                             Annual <span className="text-xs opacity-75">(Save 17%)</span>
@@ -231,8 +244,8 @@ const BillingPage = () => {
                         <div
                             key={plan.id}
                             className={`bg-white rounded-2xl shadow-lg border-2 p-8 relative ${plan.popular
-                                    ? 'border-secondary ring-2 ring-secondary ring-opacity-20'
-                                    : 'border-gray-100'
+                                ? 'border-secondary ring-2 ring-secondary ring-opacity-20'
+                                : 'border-gray-100'
                                 }`}
                         >
                             {plan.popular && (
@@ -279,10 +292,10 @@ const BillingPage = () => {
                                 onClick={() => handleSubscribe(plan.id)}
                                 disabled={processing || billing?.organization?.plan === plan.id}
                                 className={`w-full py-3 px-6 rounded-xl font-medium transition-all ${billing?.organization?.plan === plan.id
-                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                        : plan.popular
-                                            ? 'bg-secondary hover:bg-secondary-dark text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
-                                            : 'bg-primary hover:bg-primary-light text-white shadow-md hover:shadow-lg'
+                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                    : plan.popular
+                                        ? 'bg-secondary hover:bg-secondary-dark text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
+                                        : 'bg-primary hover:bg-primary-light text-white shadow-md hover:shadow-lg'
                                     }`}
                             >
                                 {billing?.organization?.plan === plan.id
@@ -299,7 +312,7 @@ const BillingPage = () => {
                 {/* Footer */}
                 <div className="text-center mt-12 text-gray-500 text-sm">
                     <p>All prices in South African Rand (ZAR). Cancel anytime.</p>
-                    <p className="mt-1">Questions? Contact us at <a href="mailto:support@eliphasx.co.za" className="text-primary hover:underline">support@eliphasx.co.za</a></p>
+                    <p className="mt-1">Questions? Contact us at <a href="mailto:eliphasxlegal@basilx.co.za" className="text-primary hover:underline">eliphasxlegal@basilx.co.za</a></p>
                 </div>
             </div>
         </div>

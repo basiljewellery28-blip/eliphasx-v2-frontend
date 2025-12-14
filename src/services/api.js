@@ -74,4 +74,14 @@ export const searchAPI = {
     search: (query) => api.get(`/search?q=${encodeURIComponent(query)}`),
 };
 
+// 🛡️ Super Admin API (Whitelisted users only)
+export const sysadminAPI = {
+    getStats: () => api.get('/sysadmin/stats'),
+    getAuditLogs: (params = {}) => api.get('/sysadmin/audit-logs', { params }),
+    getOrganizations: () => api.get('/sysadmin/organizations'),
+    updateOrgStatus: (id, status) => api.patch(`/sysadmin/organizations/${id}/status`, { status }),
+    getUsers: () => api.get('/sysadmin/users'),
+    getHealth: () => api.get('/sysadmin/health'),
+};
+
 export default api;

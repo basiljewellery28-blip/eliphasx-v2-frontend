@@ -1,6 +1,6 @@
 # Cookie Policy
 
-**ELIPHASx (Pty) Ltd**  
+**BASIL & Co**  
 **Last Updated:** December 2024
 
 ---
@@ -45,4 +45,4 @@ If you disable cookies in your browser, some features may not work correctly.
 ## Contact
 
 For questions about our cookie practices:  
-**Email:** privacy@eliphasx.co.za
+**Email:** eliphasxsupport@basilx.co.za

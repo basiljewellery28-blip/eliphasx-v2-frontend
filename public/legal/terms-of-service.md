@@ -1,6 +1,6 @@
 # Terms of Service
 
-**ELIPHASx (Pty) Ltd**  
+**BASIL & Co**  
 **Last Updated:** December 2024
 
 ---
@@ -9,7 +9,7 @@
 
 By accessing or using ELIPHASx ("Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree, do not use the Service.
 
-These Terms constitute a legally binding agreement between you and ELIPHASx (Pty) Ltd ("Company", "we", "us").
+These Terms constitute a legally binding agreement between you and BASIL & Co ("Company", "we", "us").
 
 ---
 
@@ -105,7 +105,7 @@ You agree NOT to:
 ## 9. Intellectual Property
 
 ### 9.1 Our Property
-The Service, including software, design, and branding, is owned by ELIPHASx (Pty) Ltd.
+The Service, including software, design, and branding, is owned by Basil & Co.
 
 ### 9.2 Your Content
 - You retain ownership of your Content
@@ -144,7 +144,7 @@ To the maximum extent permitted by South African law:
 
 ## 13. Indemnification
 
-You agree to indemnify and hold harmless ELIPHASx (Pty) Ltd from claims arising from:
+You agree to indemnify and hold harmless Basil & Co from claims arising from:
 - Your use of the Service
 - Your violation of these Terms
 - Your Content
@@ -166,7 +166,7 @@ We may terminate or suspend access for:
 
 ## 15. Governing Law
 
-These Terms are governed by the laws of the Republic of South Africa. Disputes shall be resolved in the courts of [Your Province], South Africa.
+These Terms are governed by the laws of the Republic of South Africa. Disputes shall be resolved in the courts of Gauteng, South Africa.
 
 ---
 
@@ -178,9 +178,9 @@ We may modify these Terms with 30 days' notice. Continued use after changes cons
 
 ## 17. Contact
 
-**ELIPHASx (Pty) Ltd**  
-Email: legal@eliphasx.co.za  
-Address: [Your Business Address], South Africa
+**BASIL & Co**  
+Email: eliphasxlegal@basilx.co.za  
+Address: Craighall Park, Johannesburg, South Africa
 
 ---
 

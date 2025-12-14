@@ -71,6 +71,12 @@ const Dashboard = () => {
                             <Link to="/profile" className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
                                 Profile
                             </Link>
+                            {/* Super Admin Link - Only for whitelisted emails */}
+                            {['ntobekom@basilx.co.za', 'eliphasxsupport@basilx.co.za'].includes(user?.email?.toLowerCase()) && (
+                                <Link to="/sysadmin" className="text-sm font-medium text-yellow-600 hover:text-yellow-800 transition-colors flex items-center">
+                                    🛡️ SysAdmin
+                                </Link>
+                            )}
                             <button
                                 onClick={logout}
                                 className="text-sm font-medium text-red-600 hover:text-red-800 transition-colors"

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../../contexts/AppContext';
 import { clientsAPI } from '../../services/api';
 
 const ClientManager = () => {
     const { clients, dispatch, showNotification } = useApp();
     const location = useLocation();
+    const navigate = useNavigate();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingClient, setEditingClient] = useState(null);
     const [formData, setFormData] = useState({
@@ -141,7 +142,18 @@ const ClientManager = () => {
     return (
         <div className="p-6">
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Clients</h2>
+                <div className="flex items-center">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="mr-4 text-gray-400 hover:text-gray-600 transition-colors"
+                        title="Go Back"
+                    >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                    </button>
+                    <h2 className="text-2xl font-bold text-gray-900">Clients</h2>
+                </div>
                 <button
                     onClick={() => handleOpenModal()}
                     className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"

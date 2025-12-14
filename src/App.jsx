@@ -10,6 +10,7 @@ import QuoteBuilder from './components/QuoteBuilder/QuoteBuilder';
 import ClientManager from './components/ClientManager/ClientManager';
 import ClientProfile from './components/ClientManager/ClientProfile';
 import AdminPanel from './components/Admin/AdminPanel';
+import SysAdminDashboard from './components/Admin/SysAdminDashboard';
 import UserProfile from './components/User/UserProfile';
 import BillingPage from './components/Billing/BillingPage';
 import OrganizationSettings from './components/Billing/OrganizationSettings';
@@ -111,6 +112,14 @@ function AppRoutes() {
                 }
             />
             <Route path="/legal/:document" element={<LegalPage />} />
+            <Route
+                path="/sysadmin"
+                element={
+                    <ProtectedRoute>
+                        <SysAdminDashboard />
+                    </ProtectedRoute>
+                }
+            />
             <Route path="/" element={<Navigate to="/dashboard" />} />
         </Routes>
     );

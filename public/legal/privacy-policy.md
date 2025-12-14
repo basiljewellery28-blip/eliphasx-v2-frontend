@@ -1,13 +1,13 @@
 # Privacy Policy
 
-**ELIPHASx (Pty) Ltd**  
+**BASIL & Co**  
 **Last Updated:** December 2024
 
 ---
 
 ## 1. Introduction
 
-ELIPHASx (Pty) Ltd ("we", "us", "our") is committed to protecting your personal information in accordance with the Protection of Personal Information Act 4 of 2013 ("POPIA") and other applicable South African laws.
+BASIL & Co ("we", "us", "our") is committed to protecting your personal information in accordance with the Protection of Personal Information Act 4 of 2013 ("POPIA") and other applicable South African laws.
 
 This Privacy Policy explains how we collect, use, store, and protect your personal information when you use our jewelry manufacturing quote management software ("Service").
 
@@ -15,10 +15,10 @@ This Privacy Policy explains how we collect, use, store, and protect your person
 
 ## 2. Information Officer
 
-**Responsible Party:** ELIPHASx (Pty) Ltd  
-**Information Officer:** [Your Name]  
-**Email:** privacy@eliphasx.co.za  
-**Address:** [Your Business Address], South Africa
+**Responsible Party:** BASIL & Co  
+**Information Officer:** Information Officer  
+**Email:** eliphasxsupport@basilx.co.za  
+**Address:** Craighall Park, Johannesburg, South Africa
 
 ---
 
@@ -99,7 +99,7 @@ You have the right to:
 6. **Data Portability:** Receive your data in a portable format
 7. **Withdraw Consent:** Withdraw consent at any time
 
-To exercise these rights, email us at privacy@eliphasx.co.za
+To exercise these rights, email us at eliphasxsupport@basilx.co.za
 
 ---
 
@@ -162,6 +162,5 @@ Website: https://www.justice.gov.za/inforeg/
 
 For privacy-related inquiries:
 
-**Email:** privacy@eliphasx.co.za  
-**Phone:** [Your Phone Number]  
-**Address:** [Your Business Address], South Africa
+**Email:** eliphasxsupport@basilx.co.za  
+**Address:** Craighall Park, Johannesburg, South Africa

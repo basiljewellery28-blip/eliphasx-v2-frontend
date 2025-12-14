@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { organizationAPI } from '../../services/billingService';
 import { useApp } from '../../contexts/AppContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const OrganizationSettings = () => {
+    const navigate = useNavigate();
     const { user } = useApp();
     const [org, setOrg] = useState(null);
     const [users, setUsers] = useState([]);
@@ -166,9 +168,19 @@ const OrganizationSettings = () => {
 
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">
-            <h1 className="text-3xl font-heading font-bold text-primary-dark mb-8">
-                Organization Settings
-            </h1>
+            <div className="flex items-center mb-8">
+                <button
+                    onClick={() => navigate(-1)}
+                    className="mr-4 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </button>
+                <h1 className="text-3xl font-heading font-bold text-primary-dark">
+                    Organization Settings
+                </h1>
+            </div>
 
             {/* Messages */}
             {error && (

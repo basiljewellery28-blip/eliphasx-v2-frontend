@@ -88,8 +88,8 @@ const LegalPage = () => {
                             key={key}
                             to={`/legal/${key}`}
                             className={`text-sm font-medium transition-colors ${document === key
-                                    ? 'text-primary border-b-2 border-primary pb-2'
-                                    : 'text-gray-500 hover:text-gray-700'
+                                ? 'text-primary border-b-2 border-primary pb-2'
+                                : 'text-gray-500 hover:text-gray-700'
                                 }`}
                         >
                             {doc.title}
@@ -106,11 +106,11 @@ const LegalPage = () => {
 
                 {/* Footer */}
                 <div className="mt-8 text-center text-sm text-gray-500">
-                    <p>© {new Date().getFullYear()} ELIPHASx (Pty) Ltd. All rights reserved.</p>
+                    <p>© {new Date().getFullYear()} Basil & Co (Pty) Ltd. All rights reserved.</p>
                     <p className="mt-2">
                         Questions? Contact us at{' '}
-                        <a href="mailto:legal@eliphasx.co.za" className="text-primary hover:underline">
-                            legal@eliphasx.co.za
+                        <a href="mailto:eliphasxlegal@basilx.co.za" className="text-primary hover:underline">
+                            eliphasxlegal@basilx.co.za
                         </a>
                     </p>
                 </div>

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../contexts/AppContext';
 import ClientManager from '../ClientManager/ClientManager';
 import AdminPanel from '../Admin/AdminPanel';
 import StoneManager from '../Admin/StoneManager';
 
 const UserProfile = () => {
+    const navigate = useNavigate();
     const { user, logout } = useApp();
     const [activeTab, setActiveTab] = useState('details');
 
@@ -16,7 +18,7 @@ const UserProfile = () => {
             <header className="bg-white shadow-sm border-b border-gray-100">
                 <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
                     <div className="flex items-center space-x-4">
-                        <button onClick={() => window.location.href = '/dashboard'} className="text-gray-400 hover:text-gray-600 transition-colors">
+                        <button onClick={() => navigate('/dashboard')} className="text-gray-400 hover:text-gray-600 transition-colors">
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                             </svg>
