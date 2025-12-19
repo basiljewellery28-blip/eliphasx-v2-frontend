@@ -8,7 +8,7 @@ const SUPER_ADMIN_EMAILS = ['ntobekom@basilx.co.za', 'eliphasxsupport@basilx.co.
 
 const SysAdminDashboard = () => {
     const navigate = useNavigate();
-    const { user } = useApp();
+    const { user, logout } = useApp();
     const [stats, setStats] = useState(null);
     const [auditLogs, setAuditLogs] = useState([]);
     const [organizations, setOrganizations] = useState([]);
@@ -31,6 +31,7 @@ const SysAdminDashboard = () => {
     const loadData = async () => {
         try {
             setLoading(true);
+            setError('');
             const [statsRes, logsRes, orgsRes, healthRes] = await Promise.all([
                 sysadminAPI.getStats(),
                 sysadminAPI.getAuditLogs({ limit: 20 }),
@@ -38,11 +39,13 @@ const SysAdminDashboard = () => {
                 sysadminAPI.getHealth()
             ]);
             setStats(statsRes.data);
-            setAuditLogs(logsRes.data.logs);
-            setOrganizations(orgsRes.data.organizations);
+            setAuditLogs(logsRes.data.logs || []);
+            setOrganizations(orgsRes.data.organizations || []);
             setHealth(healthRes.data);
         } catch (err) {
-            setError(err.response?.data?.error || 'Failed to load system data');
+            const errorMsg = err.response?.data?.error || 'Failed to load system data';
+            setError(errorMsg);
+            console.error('SysAdmin Error:', err.response?.status, err.response?.data);
         } finally {
             setLoading(false);
         }
@@ -53,8 +56,16 @@ const SysAdminDashboard = () => {
             await sysadminAPI.updateOrgStatus(orgId, newStatus);
             loadData(); // Refresh data
         } catch (err) {
-            alert('Failed to update status');
+            alert('Failed to update status: ' + (err.response?.data?.error || err.message));
         }
+    };
+
+    const handleLogoutAndRelogin = () => {
+        // Clear all auth data and redirect to login
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        if (logout) logout();
+        navigate('/login');
     };
 
     if (!isSuperAdmin) {
@@ -63,11 +74,16 @@ const SysAdminDashboard = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <div className="min-h-screen flex items-center justify-center bg-gray-900">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto mb-4"></div>
+                    <p className="text-gray-400">Loading Super Admin Dashboard...</p>
+                </div>
             </div>
         );
     }
+
+
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">
@@ -102,8 +118,25 @@ const SysAdminDashboard = () => {
                 </div>
 
                 {error && (
-                    <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded-lg mb-6">
-                        {error}
+                    <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-4 rounded-lg mb-6">
+                        <div className="flex items-center justify-between">
+                            <span className="font-medium">⚠️ {error}</span>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={loadData}
+                                    className="px-3 py-1 bg-yellow-600 hover:bg-yellow-500 text-white text-sm rounded"
+                                >
+                                    Retry
+                                </button>
+                                <button
+                                    onClick={handleLogoutAndRelogin}
+                                    className="px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded"
+                                >
+                                    Re-login
+                                </button>
+                            </div>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-2">If this persists, try logging out and back in to refresh your session.</p>
                     </div>
                 )}
 
@@ -150,7 +183,7 @@ const SysAdminDashboard = () => {
                                         <td className="px-6 py-4 text-sm font-medium">{org.name}</td>
                                         <td className="px-6 py-4">
                                             <span className={`px-2 py-1 rounded-full text-xs ${org.status === 'active' ? 'bg-green-600' :
-                                                    org.status === 'trial' ? 'bg-blue-600' : 'bg-red-600'
+                                                org.status === 'trial' ? 'bg-blue-600' : 'bg-red-600'
                                                 }`}>
                                                 {org.status}
                                             </span>
