@@ -16,6 +16,7 @@ import BillingPage from './components/Billing/BillingPage';
 import OrganizationSettings from './components/Billing/OrganizationSettings';
 import TermsOfService from './pages/legal/TermsOfService';
 import PrivacyPolicy from './pages/legal/PrivacyPolicy';
+import AcceptInvite from './components/Auth/AcceptInvite';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
@@ -40,6 +41,7 @@ function AppRoutes() {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
+            <Route path="/accept-invite/:token" element={<AcceptInvite />} />
             <Route
                 path="/dashboard"
                 element={
