@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import api from '../../services/api';
 
 // South African Provinces
@@ -42,6 +42,7 @@ const INDUSTRIES = [
 
 const Register = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [currentStep, setCurrentStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -73,9 +74,36 @@ const Register = () => {
         vatNumber: ''
     });
 
+    // Restore form data if returning from legal pages
+    useEffect(() => {
+        if (location.state?.returnFromLegal && location.state?.formData) {
+            setFormData(prev => ({ ...prev, ...location.state.formData }));
+            // Auto-check the appropriate checkbox if user clicked I Agree
+            if (location.state.acceptedTerms) {
+                setFormData(prev => ({ ...prev, acceptedTerms: true }));
+            }
+            if (location.state.acceptedPrivacy) {
+                setFormData(prev => ({ ...prev, acceptedPrivacy: true }));
+            }
+        }
+    }, [location.state]);
+
     const updateField = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
         setError('');
+    };
+
+    // Navigate to legal pages with form data preserved
+    const goToTerms = () => {
+        navigate('/legal/terms', {
+            state: { fromRegistration: true, formData: formData }
+        });
+    };
+
+    const goToPrivacy = () => {
+        navigate('/legal/privacy', {
+            state: { fromRegistration: true, formData: formData }
+        });
     };
 
     // Validate current step
@@ -228,9 +256,13 @@ const Register = () => {
                     />
                     <label htmlFor="terms" className="ml-3 text-sm text-gray-600">
                         I agree to the{' '}
-                        <Link to="/legal/terms" target="_blank" className="text-secondary hover:underline font-medium">
+                        <button
+                            type="button"
+                            onClick={goToTerms}
+                            className="text-secondary hover:underline font-medium"
+                        >
                             Terms of Service
-                        </Link> *
+                        </button> *
                     </label>
                 </div>
 
@@ -244,9 +276,13 @@ const Register = () => {
                     />
                     <label htmlFor="privacy" className="ml-3 text-sm text-gray-600">
                         I agree to the{' '}
-                        <Link to="/legal/privacy" target="_blank" className="text-secondary hover:underline font-medium">
+                        <button
+                            type="button"
+                            onClick={goToPrivacy}
+                            className="text-secondary hover:underline font-medium"
+                        >
                             Privacy Policy
-                        </Link> *
+                        </button> *
                     </label>
                 </div>
             </div>
@@ -454,10 +490,10 @@ const Register = () => {
                     <div
                         key={step}
                         className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold text-sm transition-all ${step < currentStep
-                                ? 'bg-green-500 text-white'
-                                : step === currentStep
-                                    ? 'bg-primary text-white ring-4 ring-primary/30'
-                                    : 'bg-gray-200 text-gray-500'
+                            ? 'bg-green-500 text-white'
+                            : step === currentStep
+                                ? 'bg-primary text-white ring-4 ring-primary/30'
+                                : 'bg-gray-200 text-gray-500'
                             }`}
                     >
                         {step < currentStep ? '✓' : step}

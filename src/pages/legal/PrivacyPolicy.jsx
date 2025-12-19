@@ -1,8 +1,39 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const PrivacyPolicy = () => {
     const lastUpdated = "19 December 2024";
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    // Check if user came from registration flow
+    const fromRegistration = location.state?.fromRegistration || false;
+    const registrationData = location.state?.formData || null;
+
+    // Handle "I Agree" button - return to registration with data preserved
+    const handleAgree = () => {
+        navigate('/register', {
+            state: {
+                formData: registrationData,
+                acceptedPrivacy: true,
+                returnFromLegal: true
+            }
+        });
+    };
+
+    // Handle back button
+    const handleBack = () => {
+        if (fromRegistration) {
+            navigate('/register', {
+                state: {
+                    formData: registrationData,
+                    returnFromLegal: true
+                }
+            });
+        } else {
+            navigate('/');
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -12,9 +43,12 @@ const PrivacyPolicy = () => {
                     <h1 className="text-3xl md:text-4xl font-bold text-primary-dark mb-2">Privacy Policy</h1>
                     <p className="text-gray-500">Last updated: {lastUpdated}</p>
                     <p className="text-sm text-green-600 mt-2 font-medium">✓ POPIA Compliant</p>
-                    <Link to="/" className="text-secondary hover:underline text-sm mt-4 inline-block">
-                        ← Back to ELIPHASx
-                    </Link>
+                    <button
+                        onClick={handleBack}
+                        className="text-secondary hover:underline text-sm mt-4 inline-block"
+                    >
+                        ← {fromRegistration ? 'Back to Registration' : 'Back to ELIPHASx'}
+                    </button>
                 </div>
 
                 {/* Content */}
@@ -230,14 +264,30 @@ const PrivacyPolicy = () => {
 
                 </div>
 
-                {/* Footer */}
+                {/* Footer with I Agree button */}
                 <div className="mt-12 pt-8 border-t text-center">
-                    <Link to="/register" className="btn-primary px-8 py-3 rounded-xl inline-block">
-                        Create Your Account
-                    </Link>
-                    <p className="text-gray-500 text-sm mt-4">
-                        By creating an account, you agree to this Privacy Policy.
-                    </p>
+                    {fromRegistration ? (
+                        <>
+                            <button
+                                onClick={handleAgree}
+                                className="bg-green-600 hover:bg-green-700 text-white px-10 py-4 rounded-xl inline-block font-semibold text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
+                            >
+                                ✓ I Agree to the Privacy Policy
+                            </button>
+                            <p className="text-gray-500 text-sm mt-4">
+                                Click to accept and continue with your registration.
+                            </p>
+                        </>
+                    ) : (
+                        <>
+                            <Link to="/register" className="btn-primary px-8 py-3 rounded-xl inline-block">
+                                Create Your Account
+                            </Link>
+                            <p className="text-gray-500 text-sm mt-4">
+                                By creating an account, you agree to this Privacy Policy.
+                            </p>
+                        </>
+                    )}
                 </div>
             </div>
         </div>
