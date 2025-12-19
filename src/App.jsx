@@ -14,7 +14,8 @@ import SysAdminDashboard from './components/Admin/SysAdminDashboard';
 import UserProfile from './components/User/UserProfile';
 import BillingPage from './components/Billing/BillingPage';
 import OrganizationSettings from './components/Billing/OrganizationSettings';
-import LegalPage from './components/Legal/LegalPage';
+import TermsOfService from './pages/legal/TermsOfService';
+import PrivacyPolicy from './pages/legal/PrivacyPolicy';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
@@ -111,7 +112,8 @@ function AppRoutes() {
                     </ProtectedRoute>
                 }
             />
-            <Route path="/legal/:document" element={<LegalPage />} />
+            <Route path="/legal/terms" element={<TermsOfService />} />
+            <Route path="/legal/privacy" element={<PrivacyPolicy />} />
             <Route
                 path="/sysadmin"
                 element={
