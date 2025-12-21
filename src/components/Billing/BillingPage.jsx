@@ -15,46 +15,48 @@ const BillingPage = () => {
 
     const plans = [
         {
-            id: 'professional',
-            name: 'Professional',
-            description: 'Perfect for small jewelry businesses',
-            monthly: 1499,
-            annual: 14990,
+            id: 'starter',
+            name: 'Starter',
+            description: 'Essential tools for independent jewelers & freelancers',
+            monthly: 899,
+            annual: 8990,
             features: [
-                '3 team members',
-                '100 quotes per month',
-                'Client & Admin PDF exports',
-                'Email support'
+                '💎 Smart Quote Calculator (Instant Pricing)',
+                '📄 Professional PDF Exports',
+                '👤 1 User Seat',
+                '📊 50 Quotes per Month',
+                '☁️ Automatic Cloud Backups'
             ]
         },
         {
-            id: 'business',
-            name: 'Business',
-            description: 'For growing jewelry manufacturers',
-            monthly: 2999,
-            annual: 29990,
+            id: 'growth',
+            name: 'Growth',
+            description: 'Power features for growing businesses & workshops',
+            monthly: 1999,
+            annual: 19990,
             popular: true,
             features: [
-                '10 team members',
-                'Unlimited quotes',
-                'White-label PDF branding',
-                'Priority support',
-                'Custom metal pricing'
+                '🚀 Everything in Starter, plus:',
+                '♾️ Unlimited Quotes (No limits)',
+                '✨ White-label Branding (Your Logo)',
+                '👥 5 Team Members',
+                '📈 Advanced Profit Analytics',
+                '⚡ Priority Whatsapp Support'
             ]
         },
         {
-            id: 'enterprise',
-            name: 'Enterprise',
-            description: 'For large-scale operations',
-            monthly: 5999,
-            annual: 59990,
+            id: 'scale',
+            name: 'Scale',
+            description: 'Complete control for manufacturers & large teams',
+            monthly: 3999,
+            annual: 39990,
             features: [
-                'Unlimited team members',
-                'Unlimited quotes',
-                'API access',
-                'Custom branding',
-                'Dedicated account manager',
-                'SLA guarantee'
+                '🏢 Everything in Growth, plus:',
+                '🌍 Unlimited Team Members',
+                '🔌 API Access for Integrations',
+                '🛡️ Audit Logs & Staff Permissions',
+                '💼 Dedicated Success Manager',
+                '🎓 Staff Onboarding Training'
             ]
         }
     ];
