@@ -122,7 +122,7 @@ const UserProfile = () => {
                                     <div className="text-4xl mb-4">👥</div>
                                     <p className="text-gray-500 mb-4">Manage your team members and invitations</p>
                                     <button
-                                        onClick={() => navigate('/organization')}
+                                        onClick={() => navigate('/org-dashboard?tab=team')}
                                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                                     >
                                         Open Team Settings

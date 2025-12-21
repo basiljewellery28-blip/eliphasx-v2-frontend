@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../../contexts/AppContext';
 import api from '../../services/api';
 
@@ -11,7 +11,18 @@ const OrganizationDashboard = () => {
     const [auditLogs, setAuditLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [activeTab, setActiveTab] = useState('overview');
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+    const initialTab = queryParams.get('tab') || 'overview';
+    const [activeTab, setActiveTab] = useState(initialTab);
+
+    // Update URL when tab changes
+    const handleTabChange = (tabId) => {
+        setActiveTab(tabId);
+        const params = new URLSearchParams(location.search);
+        params.set('tab', tabId);
+        navigate({ search: params.toString() }, { replace: true });
+    };
     const [users, setUsers] = useState([]);
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [inviteEmail, setInviteEmail] = useState('');
