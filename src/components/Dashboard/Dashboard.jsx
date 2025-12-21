@@ -62,21 +62,9 @@ const Dashboard = () => {
                                 </Link>
                             )}
                             <span className="text-sm text-gray-500 font-medium">Welcome, {user?.email}</span>
-                            <Link to="/billing" className="text-sm font-medium text-secondary hover:text-secondary-dark transition-colors">
-                                Billing
+                            <Link to="/profile" className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors flex items-center">
+                                ⚙️ Settings
                             </Link>
-                            <Link to="/organization" className="text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors">
-                                Team
-                            </Link>
-                            <Link to="/profile" className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
-                                Profile
-                            </Link>
-                            {/* Org Dashboard Link - For admins and org owners */}
-                            {(user?.role === 'admin' || user?.is_org_owner) && (
-                                <Link to="/org-dashboard" className="text-sm font-medium text-purple-600 hover:text-purple-800 transition-colors flex items-center">
-                                    📊 Org Dashboard
-                                </Link>
-                            )}
                             {/* Super Admin Link - Only for whitelisted emails */}
                             {['ntobekom@basilx.co.za', 'eliphasxsupport@basilx.co.za'].includes(user?.email?.toLowerCase()) && (
                                 <Link to="/sysadmin" className="text-sm font-medium text-yellow-600 hover:text-yellow-800 transition-colors flex items-center">
