@@ -1,7 +1,8 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 
 const MarkupCanvas = ({ value, onChange }) => {
     const canvasRef = useRef(null);
+    const overlayRef = useRef(null);
     const [isDrawing, setIsDrawing] = useState(false);
     const [tool, setTool] = useState('pen'); // pen, rectangle, circle, arrow, text
     const [color, setColor] = useState('#FF0000');
@@ -11,18 +12,112 @@ const MarkupCanvas = ({ value, onChange }) => {
     const [textInput, setTextInput] = useState('');
     const [textPosition, setTextPosition] = useState(null);
 
+    // Undo/Redo History
+    const [history, setHistory] = useState([]);
+    const [historyIndex, setHistoryIndex] = useState(-1);
+    const maxHistory = 50;
+
+    // Initialize canvas with default size
     useEffect(() => {
-        // Load saved canvas data if exists
-        if (value && canvasRef.current) {
-            const canvas = canvasRef.current;
-            const ctx = canvas.getContext('2d');
-            const img = new Image();
-            img.onload = () => {
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            };
-            img.src = value;
+        const canvas = canvasRef.current;
+        const overlay = overlayRef.current;
+        if (canvas && overlay) {
+            canvas.width = 800;
+            canvas.height = 600;
+            overlay.width = 800;
+            overlay.height = 600;
+
+            // Load saved canvas data if exists
+            if (value) {
+                const img = new Image();
+                img.onload = () => {
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    // Save initial state to history
+                    saveToHistory();
+                };
+                img.src = value;
+            }
         }
     }, []);
+
+    // Keyboard shortcuts for undo/redo
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                e.preventDefault();
+                if (e.shiftKey) {
+                    redo();
+                } else {
+                    undo();
+                }
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+                e.preventDefault();
+                redo();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [historyIndex, history]);
+
+    // Save current canvas state to history
+    const saveToHistory = useCallback(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const dataUrl = canvas.toDataURL('image/png');
+
+        setHistory(prev => {
+            // Trim future states if we've undone and now making new changes
+            const newHistory = prev.slice(0, historyIndex + 1);
+            newHistory.push(dataUrl);
+
+            // Limit history size
+            if (newHistory.length > maxHistory) {
+                newHistory.shift();
+            }
+
+            return newHistory;
+        });
+
+        setHistoryIndex(prev => Math.min(prev + 1, maxHistory - 1));
+    }, [historyIndex]);
+
+    // Undo action
+    const undo = useCallback(() => {
+        if (historyIndex > 0) {
+            const newIndex = historyIndex - 1;
+            restoreFromHistory(newIndex);
+            setHistoryIndex(newIndex);
+        }
+    }, [historyIndex, history]);
+
+    // Redo action
+    const redo = useCallback(() => {
+        if (historyIndex < history.length - 1) {
+            const newIndex = historyIndex + 1;
+            restoreFromHistory(newIndex);
+            setHistoryIndex(newIndex);
+        }
+    }, [historyIndex, history]);
+
+    // Restore canvas from history
+    const restoreFromHistory = (index) => {
+        if (index < 0 || index >= history.length) return;
+
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+
+        img.onload = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            saveCanvas();
+        };
+        img.src = history[index];
+    };
 
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
@@ -32,6 +127,7 @@ const MarkupCanvas = ({ value, onChange }) => {
                 const img = new Image();
                 img.onload = () => {
                     const canvas = canvasRef.current;
+                    const overlay = overlayRef.current;
                     const ctx = canvas.getContext('2d');
 
                     // Set canvas size to image size (max 800x600)
@@ -51,9 +147,12 @@ const MarkupCanvas = ({ value, onChange }) => {
 
                     canvas.width = width;
                     canvas.height = height;
+                    overlay.width = width;
+                    overlay.height = height;
 
                     ctx.drawImage(img, 0, 0, width, height);
                     setBackgroundImage(event.target.result);
+                    saveToHistory();
                     saveCanvas();
                 };
                 img.src = event.target.result;
@@ -62,12 +161,18 @@ const MarkupCanvas = ({ value, onChange }) => {
         }
     };
 
+    // 🎯 FIXED: Precise cursor positioning with scale ratio
     const getMousePos = (e) => {
         const canvas = canvasRef.current;
         const rect = canvas.getBoundingClientRect();
+
+        // Calculate scale ratio between actual canvas size and displayed size
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
         return {
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top
+            x: (e.clientX - rect.left) * scaleX,
+            y: (e.clientY - rect.top) * scaleY
         };
     };
 
@@ -81,6 +186,7 @@ const MarkupCanvas = ({ value, onChange }) => {
         ctx.strokeStyle = color;
         ctx.lineWidth = lineWidth;
         ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
 
         if (tool === 'pen') {
             ctx.beginPath();
@@ -94,12 +200,39 @@ const MarkupCanvas = ({ value, onChange }) => {
         if (!isDrawing || tool === 'text') return;
 
         const pos = getMousePos(e);
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
 
         if (tool === 'pen') {
+            // Draw directly on main canvas for pen tool
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext('2d');
             ctx.lineTo(pos.x, pos.y);
             ctx.stroke();
+        } else {
+            // 🎯 LIVE PREVIEW: Draw on overlay canvas for shapes
+            const overlay = overlayRef.current;
+            const ctx = overlay.getContext('2d');
+
+            // Clear overlay and redraw preview
+            ctx.clearRect(0, 0, overlay.width, overlay.height);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            if (tool === 'rectangle') {
+                const width = pos.x - startPos.x;
+                const height = pos.y - startPos.y;
+                ctx.strokeRect(startPos.x, startPos.y, width, height);
+            } else if (tool === 'circle') {
+                const radius = Math.sqrt(
+                    Math.pow(pos.x - startPos.x, 2) + Math.pow(pos.y - startPos.y, 2)
+                );
+                ctx.beginPath();
+                ctx.arc(startPos.x, startPos.y, radius, 0, 2 * Math.PI);
+                ctx.stroke();
+            } else if (tool === 'arrow') {
+                drawArrow(ctx, startPos.x, startPos.y, pos.x, pos.y);
+            }
         }
     };
 
@@ -109,28 +242,42 @@ const MarkupCanvas = ({ value, onChange }) => {
         const pos = getMousePos(e);
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
+        const overlay = overlayRef.current;
 
+        // Clear overlay preview
+        if (overlay) {
+            overlay.getContext('2d').clearRect(0, 0, overlay.width, overlay.height);
+        }
+
+        // Draw final shape on main canvas
         if (tool === 'rectangle') {
             const width = pos.x - startPos.x;
             const height = pos.y - startPos.y;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
             ctx.strokeRect(startPos.x, startPos.y, width, height);
         } else if (tool === 'circle') {
             const radius = Math.sqrt(
                 Math.pow(pos.x - startPos.x, 2) + Math.pow(pos.y - startPos.y, 2)
             );
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
             ctx.beginPath();
             ctx.arc(startPos.x, startPos.y, radius, 0, 2 * Math.PI);
             ctx.stroke();
         } else if (tool === 'arrow') {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
             drawArrow(ctx, startPos.x, startPos.y, pos.x, pos.y);
         }
 
         setIsDrawing(false);
+        saveToHistory();
         saveCanvas();
     };
 
     const drawArrow = (ctx, fromX, fromY, toX, toY) => {
-        const headLength = 15;
+        const headLength = Math.max(15, lineWidth * 5);
         const angle = Math.atan2(toY - fromY, toX - fromX);
 
         // Draw line
@@ -139,19 +286,20 @@ const MarkupCanvas = ({ value, onChange }) => {
         ctx.lineTo(toX, toY);
         ctx.stroke();
 
-        // Draw arrowhead
+        // Draw filled arrowhead for better visibility
         ctx.beginPath();
         ctx.moveTo(toX, toY);
         ctx.lineTo(
             toX - headLength * Math.cos(angle - Math.PI / 6),
             toY - headLength * Math.sin(angle - Math.PI / 6)
         );
-        ctx.moveTo(toX, toY);
         ctx.lineTo(
             toX - headLength * Math.cos(angle + Math.PI / 6),
             toY - headLength * Math.sin(angle + Math.PI / 6)
         );
-        ctx.stroke();
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
     };
 
     const addText = () => {
@@ -159,12 +307,13 @@ const MarkupCanvas = ({ value, onChange }) => {
 
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
-        ctx.font = `${lineWidth * 8}px Arial`;
+        ctx.font = `bold ${lineWidth * 8}px Arial`;
         ctx.fillStyle = color;
         ctx.fillText(textInput, textPosition.x, textPosition.y);
 
         setTextInput('');
         setTextPosition(null);
+        saveToHistory();
         saveCanvas();
     };
 
@@ -177,11 +326,14 @@ const MarkupCanvas = ({ value, onChange }) => {
             const img = new Image();
             img.onload = () => {
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                saveToHistory();
+                saveCanvas();
             };
             img.src = backgroundImage;
+        } else {
+            saveToHistory();
+            saveCanvas();
         }
-
-        saveCanvas();
     };
 
     const saveCanvas = () => {
@@ -191,6 +343,9 @@ const MarkupCanvas = ({ value, onChange }) => {
             onChange(dataUrl);
         }
     };
+
+    const canUndo = historyIndex > 0;
+    const canRedo = historyIndex < history.length - 1;
 
     return (
         <div className="space-y-4">
@@ -210,12 +365,39 @@ const MarkupCanvas = ({ value, onChange }) => {
 
                     <div className="h-6 w-px bg-gray-300"></div>
 
+                    {/* Undo/Redo Buttons */}
+                    <button
+                        onClick={undo}
+                        disabled={!canUndo}
+                        className={`px-3 py-2 rounded-md font-medium transition-colors ${canUndo
+                                ? 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            }`}
+                        title="Undo (Ctrl+Z)"
+                    >
+                        ↩️ Undo
+                    </button>
+
+                    <button
+                        onClick={redo}
+                        disabled={!canRedo}
+                        className={`px-3 py-2 rounded-md font-medium transition-colors ${canRedo
+                                ? 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            }`}
+                        title="Redo (Ctrl+Y)"
+                    >
+                        ↪️ Redo
+                    </button>
+
+                    <div className="h-6 w-px bg-gray-300"></div>
+
                     {/* Drawing Tools */}
                     <button
                         onClick={() => setTool('pen')}
                         className={`px-3 py-2 rounded-md font-medium transition-colors ${tool === 'pen'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-white text-gray-700 hover:bg-gray-100'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white text-gray-700 hover:bg-gray-100'
                             }`}
                         title="Freehand Drawing"
                     >
@@ -225,8 +407,8 @@ const MarkupCanvas = ({ value, onChange }) => {
                     <button
                         onClick={() => setTool('rectangle')}
                         className={`px-3 py-2 rounded-md font-medium transition-colors ${tool === 'rectangle'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-white text-gray-700 hover:bg-gray-100'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white text-gray-700 hover:bg-gray-100'
                             }`}
                         title="Rectangle"
                     >
@@ -236,8 +418,8 @@ const MarkupCanvas = ({ value, onChange }) => {
                     <button
                         onClick={() => setTool('circle')}
                         className={`px-3 py-2 rounded-md font-medium transition-colors ${tool === 'circle'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-white text-gray-700 hover:bg-gray-100'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white text-gray-700 hover:bg-gray-100'
                             }`}
                         title="Circle"
                     >
@@ -247,8 +429,8 @@ const MarkupCanvas = ({ value, onChange }) => {
                     <button
                         onClick={() => setTool('arrow')}
                         className={`px-3 py-2 rounded-md font-medium transition-colors ${tool === 'arrow'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-white text-gray-700 hover:bg-gray-100'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white text-gray-700 hover:bg-gray-100'
                             }`}
                         title="Arrow"
                     >
@@ -258,8 +440,8 @@ const MarkupCanvas = ({ value, onChange }) => {
                     <button
                         onClick={() => setTool('text')}
                         className={`px-3 py-2 rounded-md font-medium transition-colors ${tool === 'text'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-white text-gray-700 hover:bg-gray-100'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white text-gray-700 hover:bg-gray-100'
                             }`}
                         title="Text Annotation"
                     >
@@ -304,6 +486,11 @@ const MarkupCanvas = ({ value, onChange }) => {
                         🗑️ Clear
                     </button>
                 </div>
+
+                {/* History indicator */}
+                <div className="mt-2 text-xs text-gray-500">
+                    History: {historyIndex + 1} / {history.length} states | Ctrl+Z to undo, Ctrl+Y to redo
+                </div>
             </div>
 
             {/* Text Input (shown when text tool is active and position is set) */}
@@ -340,8 +527,9 @@ const MarkupCanvas = ({ value, onChange }) => {
                 </div>
             )}
 
-            {/* Canvas */}
-            <div className="border-2 border-gray-300 rounded-lg overflow-hidden bg-white">
+            {/* Canvas Container */}
+            <div className="border-2 border-gray-300 rounded-lg overflow-hidden bg-white relative">
+                {/* Main Canvas */}
                 <canvas
                     ref={canvasRef}
                     onMouseDown={startDrawing}
@@ -349,6 +537,12 @@ const MarkupCanvas = ({ value, onChange }) => {
                     onMouseUp={stopDrawing}
                     onMouseLeave={stopDrawing}
                     className="cursor-crosshair w-full"
+                    style={{ maxWidth: '100%', height: 'auto', display: 'block' }}
+                />
+                {/* Overlay Canvas for live preview */}
+                <canvas
+                    ref={overlayRef}
+                    className="absolute top-0 left-0 pointer-events-none w-full"
                     style={{ maxWidth: '100%', height: 'auto' }}
                 />
             </div>
