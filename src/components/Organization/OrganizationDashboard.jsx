@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../contexts/AppContext';
 import api from '../../services/api';
 
@@ -11,9 +11,6 @@ const OrganizationDashboard = () => {
     const [auditLogs, setAuditLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const location = useLocation();
-    const queryParams = new URLSearchParams(location.search);
-    const initialTab = queryParams.get('tab') || 'overview';
     const [activeTab, setActiveTab] = useState('overview');
 
     // Check if user is admin or org owner
@@ -260,78 +257,6 @@ const OrganizationDashboard = () => {
                     </div>
                 )}
             </div>
-            {/* Invite Modal */}
-            {showInviteModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-700">
-                        <h3 className="text-xl font-bold text-white mb-4">Invite Team Member</h3>
-
-                        {inviteSuccess ? (
-                            <div className="bg-green-900/50 border border-green-500 text-green-200 p-4 rounded-lg text-center">
-                                <p className="font-medium">✅ {inviteSuccess}</p>
-                            </div>
-                        ) : (
-                            <form onSubmit={handleInviteUser} className="space-y-4">
-                                {inviteError && (
-                                    <div className="bg-red-900/50 border border-red-500 text-red-200 p-3 rounded text-sm">
-                                        {inviteError}
-                                    </div>
-                                )}
-
-                                <div>
-                                    <label className="block text-gray-300 text-sm font-medium mb-1">Email Address</label>
-                                    <input
-                                        type="email"
-                                        required
-                                        value={inviteEmail}
-                                        onChange={(e) => setInviteEmail(e.target.value)}
-                                        className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-purple-500 outline-none"
-                                        placeholder="colleague@example.com"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-gray-300 text-sm font-medium mb-1">Role</label>
-                                    <select
-                                        value={inviteRole}
-                                        onChange={(e) => setInviteRole(e.target.value)}
-                                        className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-purple-500 outline-none"
-                                    >
-                                        <option value="user">Standard User</option>
-                                        <option value="admin">Administrator</option>
-                                        <option value="sales">Sales</option>
-                                        <option value="designer">Designer</option>
-                                    </select>
-                                </div>
-
-                                <div className="flex space-x-3 mt-6">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setShowInviteModal(false);
-                                            setInviteError('');
-                                        }}
-                                        className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={inviteLoading}
-                                        className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50 flex justify-center items-center"
-                                    >
-                                        {inviteLoading ? (
-                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        ) : (
-                                            'Send Invite'
-                                        )}
-                                    </button>
-                                </div>
-                            </form>
-                        )}
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
