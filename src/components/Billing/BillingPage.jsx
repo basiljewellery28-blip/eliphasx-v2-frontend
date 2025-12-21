@@ -12,51 +12,52 @@ const BillingPage = () => {
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [billingCycle, setBillingCycle] = useState('monthly');
     const [processing, setProcessing] = useState(false);
+    const [showComparison, setShowComparison] = useState(false);
 
     const plans = [
         {
-            id: 'starter',
-            name: 'Starter',
-            description: 'Essential tools for independent jewelers & freelancers',
+            id: 'essential',
+            name: 'Essential',
+            description: 'Core toolset for craftsmen & independent jewelers',
             monthly: 899,
             annual: 8990,
             features: [
-                '💎 Smart Quote Calculator (Instant Pricing)',
-                '📄 Professional PDF Exports',
+                '💎 Basic Quote Calculator',
+                '📄 Standard PDF Exports',
                 '👤 1 User Seat',
                 '📊 50 Quotes per Month',
-                '☁️ Automatic Cloud Backups'
+                '☁️ Daily Cloud Backups'
             ]
         },
         {
-            id: 'growth',
-            name: 'Growth',
-            description: 'Power features for growing businesses & workshops',
+            id: 'professional',
+            name: 'Professional',
+            description: 'Advanced capabilities for growing studios',
             monthly: 1999,
             annual: 19990,
             popular: true,
             features: [
-                '🚀 Everything in Starter, plus:',
-                '♾️ Unlimited Quotes (No limits)',
-                '✨ White-label Branding (Your Logo)',
+                '🚀 All Essential Features, plus:',
+                '♾️ Unlimited Quotes',
+                '✨ White-label Branding',
                 '👥 5 Team Members',
-                '📈 Advanced Profit Analytics',
-                '⚡ Priority Whatsapp Support'
+                '📈 Profit Analytics',
+                '⚡ Priority Support'
             ]
         },
         {
-            id: 'scale',
-            name: 'Scale',
-            description: 'Complete control for manufacturers & large teams',
+            id: 'enterprise',
+            name: 'Enterprise',
+            description: 'Scalable solutions for manufacturing operations',
             monthly: 3999,
             annual: 39990,
             features: [
-                '🏢 Everything in Growth, plus:',
+                '🏢 All Professional Features, plus:',
                 '🌍 Unlimited Team Members',
-                '🔌 API Access for Integrations',
-                '🛡️ Audit Logs & Staff Permissions',
-                '💼 Dedicated Success Manager',
-                '🎓 Staff Onboarding Training'
+                '🔌 API Access',
+                '🛡️ Compliance & Logs',
+                '💼 Dedicated Manager',
+                '🎓 Staff Training Sessions'
             ]
         }
     ];
@@ -311,6 +312,59 @@ const BillingPage = () => {
                     ))}
                 </div>
 
+
+
+                {/* Comparison Table Toggle */}
+                <div className="text-center mt-12 mb-8">
+                    <button
+                        onClick={() => setShowComparison(!showComparison)}
+                        className="text-primary font-medium hover:text-primary-dark flex items-center justify-center mx-auto transition-colors"
+                    >
+                        {showComparison ? 'Hide Plan Comparison' : 'Compare All Features'}
+                        <svg className={`w-5 h-5 ml-2 transform transition-transform duration-200 ${showComparison ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                </div>
+
+                {/* Comparison Chart */}
+                {showComparison && (
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden mb-12 animate-fade-in-down">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm text-left">
+                                <thead>
+                                    <tr className="bg-gray-50 border-b border-gray-200">
+                                        <th className="p-4 font-bold text-gray-900 w-1/4">Feature</th>
+                                        <th className="p-4 text-center font-bold text-gray-900 w-1/4">Essential</th>
+                                        <th className="p-4 text-center font-bold text-primary w-1/4 bg-blue-50">Professional</th>
+                                        <th className="p-4 text-center font-bold text-gray-900 w-1/4">Enterprise</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {[
+                                        { metric: 'Team Size', essential: '1 User', professional: '5 Users', enterprise: 'Unlimited' },
+                                        { metric: 'Quotes per Month', essential: '50', professional: 'Unlimited', enterprise: 'Unlimited' },
+                                        { metric: 'Quote Calculator', essential: '✅ Basic', professional: '✅ Advanced', enterprise: '✅ Advanced' },
+                                        { metric: 'PDF Branding', essential: 'Standard', professional: 'Your Logo', enterprise: 'Custom Layouts' },
+                                        { metric: 'Cloud Backups', essential: 'Daily', professional: 'Hourly', enterprise: 'Real-time' },
+                                        { metric: 'Support Channel', essential: 'Email', professional: 'Priority WhatsApp', enterprise: 'Dedicated Mgr' },
+                                        { metric: 'API Access', essential: '-', professional: '-', enterprise: '✅' },
+                                        { metric: 'Audit Logs', essential: '-', professional: '-', enterprise: '✅' },
+                                        { metric: 'Staff Training', essential: '-', professional: '-', enterprise: '✅' },
+                                    ].map((row, idx) => (
+                                        <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                                            <td className="p-4 font-medium text-gray-900 border-r border-gray-100">{row.metric}</td>
+                                            <td className="p-4 text-center text-gray-600 border-r border-gray-100">{row.essential}</td>
+                                            <td className="p-4 text-center font-medium text-gray-900 bg-blue-50/30 border-r border-blue-100">{row.professional}</td>
+                                            <td className="p-4 text-center text-gray-600">{row.enterprise}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
                 {/* Footer */}
                 <div className="text-center mt-12 text-gray-500 text-sm">
                     <p>All prices in South African Rand (ZAR). Cancel anytime.</p>
@@ -318,6 +372,7 @@ const BillingPage = () => {
                 </div>
             </div>
         </div>
+
     );
 };
 
