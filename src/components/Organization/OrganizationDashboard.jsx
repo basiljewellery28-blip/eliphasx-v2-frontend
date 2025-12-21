@@ -2,212 +2,261 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../contexts/AppContext';
 import api from '../../services/api';
-import './OrganizationDashboard.css';
 
 const OrganizationDashboard = () => {
     const navigate = useNavigate();
-    const { user, organization } = useApp();
+    const { user, organization, logout } = useApp();
     const [stats, setStats] = useState(null);
+    const [clients, setClients] = useState([]);
+    const [auditLogs, setAuditLogs] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState('');
+    const [activeTab, setActiveTab] = useState('overview');
+
+    // Check if user is admin or org owner
+    const isOrgAdmin = user?.role === 'admin' || user?.is_org_owner;
 
     useEffect(() => {
-        fetchDashboardStats();
-    }, []);
+        if (!isOrgAdmin) {
+            navigate('/dashboard');
+            return;
+        }
+        loadData();
+    }, [isOrgAdmin]);
 
-    const fetchDashboardStats = async () => {
+    const loadData = async () => {
         try {
             setLoading(true);
-            const response = await api.get('/organizations/dashboard-stats');
-            setStats(response.data);
-            setError(null);
+            setError('');
+            const [statsRes, clientsRes, logsRes] = await Promise.all([
+                api.get('/organizations/dashboard-stats'),
+                api.get('/clients'),
+                api.get('/organizations/audit-logs').catch(() => ({ data: { logs: [] } }))
+            ]);
+            setStats(statsRes.data);
+            setClients(clientsRes.data.clients || []);
+            setAuditLogs(logsRes.data.logs || []);
         } catch (err) {
-            console.error('Failed to load dashboard stats:', err);
-            setError('Failed to load dashboard statistics');
+            setError(err.response?.data?.error || 'Failed to load dashboard data');
+            console.error('Org Dashboard Error:', err);
         } finally {
             setLoading(false);
         }
     };
 
-    const formatCurrency = (amount) => {
-        return `R ${parseFloat(amount || 0).toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const handleVerifyClient = async (clientId) => {
+        try {
+            await api.put(`/clients/${clientId}/verify`);
+            loadData();
+        } catch (err) {
+            alert('Failed to verify client: ' + (err.response?.data?.error || err.message));
+        }
     };
 
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-ZA', {
             day: 'numeric',
             month: 'short',
+            year: 'numeric',
             hour: '2-digit',
             minute: '2-digit'
         });
     };
 
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'completed': return '#10b981';
-            case 'verified': return '#10b981';
-            case 'draft': return '#f59e0b';
-            case 'pending': return '#f59e0b';
-            default: return '#64748b';
-        }
-    };
+    if (!isOrgAdmin) {
+        return <div className="p-8 text-center text-red-600">🚫 Access Denied - Admin Only</div>;
+    }
 
     if (loading) {
         return (
-            <div className="org-dashboard loading">
-                <div className="loading-spinner"></div>
-                <p>Loading dashboard...</p>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="org-dashboard error">
-                <div className="error-message">
-                    <span className="error-icon">⚠️</span>
-                    <p>{error}</p>
-                    <button onClick={fetchDashboardStats}>Try Again</button>
+            <div className="min-h-screen flex items-center justify-center bg-gray-900">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto mb-4"></div>
+                    <p className="text-gray-400">Loading Organization Dashboard...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="org-dashboard">
+        <div className="min-h-screen bg-gray-900 text-white">
             {/* Header */}
-            <div className="dashboard-header">
-                <div className="header-content">
-                    <h1>Organization Dashboard</h1>
-                    <p className="org-name">{organization?.name || 'Your Organization'}</p>
+            <header className="bg-gray-800 border-b border-gray-700">
+                <div className="max-w-7xl mx-auto py-4 px-4 flex justify-between items-center">
+                    <div className="flex items-center">
+                        <button onClick={() => navigate('/dashboard')} className="mr-4 text-gray-400 hover:text-white">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                        </button>
+                        <h1 className="text-2xl font-bold text-purple-400">📊 Organization Dashboard</h1>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <span className="text-sm text-gray-400">{organization?.name || 'Organization'}</span>
+                        <span className="text-sm text-gray-500">|</span>
+                        <span className="text-sm text-gray-400">{user?.email}</span>
+                    </div>
                 </div>
-                <button className="refresh-btn" onClick={fetchDashboardStats}>
-                    🔄 Refresh
-                </button>
-            </div>
+            </header>
 
-            {/* Stats Cards */}
-            <div className="stats-grid">
-                <div className="stat-card quotes">
-                    <div className="stat-icon">📄</div>
-                    <div className="stat-content">
-                        <h3>Total Quotes</h3>
-                        <div className="stat-value">{stats?.quotes?.total || 0}</div>
-                        <div className="stat-details">
-                            <span className="completed">{stats?.quotes?.completed || 0} completed</span>
-                            <span className="draft">{stats?.quotes?.draft || 0} drafts</span>
+            {/* Tabs */}
+            <div className="max-w-7xl mx-auto px-4 py-4">
+                <div className="flex space-x-2 mb-6">
+                    {['overview', 'clients', 'audit-logs'].map(tab => (
+                        <button
+                            key={tab}
+                            onClick={() => setActiveTab(tab)}
+                            className={`px-4 py-2 rounded-lg font-medium capitalize ${activeTab === tab ? 'bg-purple-500 text-white' : 'bg-gray-700 hover:bg-gray-600'
+                                }`}
+                        >
+                            {tab.replace('-', ' ')}
+                        </button>
+                    ))}
+                </div>
+
+                {error && (
+                    <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-4 rounded-lg mb-6">
+                        <div className="flex items-center justify-between">
+                            <span className="font-medium">⚠️ {error}</span>
+                            <button onClick={loadData} className="px-3 py-1 bg-purple-600 hover:bg-purple-500 text-white text-sm rounded">
+                                Retry
+                            </button>
                         </div>
                     </div>
-                </div>
+                )}
 
-                <div className="stat-card revenue">
-                    <div className="stat-icon">💰</div>
-                    <div className="stat-content">
-                        <h3>Revenue</h3>
-                        <div className="stat-value">{formatCurrency(stats?.revenue?.thisMonth)}</div>
-                        <div className="stat-details">
-                            <span>This month</span>
-                            <span className="total">Total: {formatCurrency(stats?.revenue?.total)}</span>
+                {/* Overview Tab */}
+                {activeTab === 'overview' && stats && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                            <h3 className="text-gray-400 text-sm mb-2">Total Quotes</h3>
+                            <p className="text-3xl font-bold text-white">{stats.quotes?.total || 0}</p>
+                            <p className="text-sm text-green-400">Completed: {stats.quotes?.completed || 0}</p>
+                            <p className="text-sm text-yellow-400">Drafts: {stats.quotes?.draft || 0}</p>
+                        </div>
+                        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                            <h3 className="text-gray-400 text-sm mb-2">Revenue</h3>
+                            <p className="text-3xl font-bold text-white">R {(stats.revenue?.total || 0).toLocaleString()}</p>
+                            <p className="text-sm text-blue-400">This month: R {(stats.revenue?.thisMonth || 0).toLocaleString()}</p>
+                        </div>
+                        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                            <h3 className="text-gray-400 text-sm mb-2">Clients</h3>
+                            <p className="text-3xl font-bold text-white">{stats.clients?.total || 0}</p>
+                            <p className="text-sm text-green-400">Verified: {stats.clients?.verified || 0}</p>
+                            <p className="text-sm text-orange-400">Pending: {stats.clients?.pending || 0}</p>
+                        </div>
+                        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                            <h3 className="text-gray-400 text-sm mb-2">Team Members</h3>
+                            <p className="text-3xl font-bold text-white">{stats.team?.members || 0}</p>
                         </div>
                     </div>
-                </div>
+                )}
 
-                <div className="stat-card clients">
-                    <div className="stat-icon">👥</div>
-                    <div className="stat-content">
-                        <h3>Clients</h3>
-                        <div className="stat-value">{stats?.clients?.total || 0}</div>
-                        <div className="stat-details">
-                            <span className="verified">{stats?.clients?.verified || 0} verified</span>
-                            <span className="pending">{stats?.clients?.pending || 0} pending</span>
-                        </div>
+                {/* Clients Tab */}
+                {activeTab === 'clients' && (
+                    <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+                        <table className="min-w-full">
+                            <thead className="bg-gray-700">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Name</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Company</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Status</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Created</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-700">
+                                {clients.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">No clients found</td>
+                                    </tr>
+                                ) : (
+                                    clients.map(client => (
+                                        <tr key={client.id} className="hover:bg-gray-700/50">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-sm font-medium text-white">{client.name}</div>
+                                                <div className="text-sm text-gray-400">{client.email}</div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                                {client.company || '-'}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-2 py-1 text-xs rounded-full ${client.is_verified
+                                                        ? 'bg-green-900 text-green-300'
+                                                        : 'bg-yellow-900 text-yellow-300'
+                                                    }`}>
+                                                    {client.is_verified ? 'Verified' : 'Pending'}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+                                                {formatDate(client.created_at)}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => navigate(`/clients/${client.id}`)}
+                                                        className="px-2 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs"
+                                                    >
+                                                        View
+                                                    </button>
+                                                    {!client.is_verified && (
+                                                        <button
+                                                            onClick={() => handleVerifyClient(client.id)}
+                                                            className="px-2 py-1 bg-green-600 hover:bg-green-500 rounded text-xs"
+                                                        >
+                                                            Verify
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
                     </div>
-                </div>
+                )}
 
-                <div className="stat-card team">
-                    <div className="stat-icon">🏢</div>
-                    <div className="stat-content">
-                        <h3>Team Members</h3>
-                        <div className="stat-value">{stats?.team?.members || 0}</div>
-                        <div className="stat-details">
-                            <span>Active users</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="quick-actions">
-                <h2>Quick Actions</h2>
-                <div className="actions-grid">
-                    <button className="action-btn primary" onClick={() => navigate('/quote/new')}>
-                        ➕ New Quote
-                    </button>
-                    <button className="action-btn" onClick={() => navigate('/clients')}>
-                        👤 Manage Clients
-                    </button>
-                    <button className="action-btn" onClick={() => navigate('/admin')}>
-                        ⚙️ Admin Settings
-                    </button>
-                    <button className="action-btn" onClick={() => navigate('/dashboard')}>
-                        📊 View All Quotes
-                    </button>
-                </div>
-            </div>
-
-            {/* Recent Activity */}
-            <div className="recent-activity">
-                <h2>Recent Activity</h2>
-                {stats?.recentActivity?.length > 0 ? (
-                    <div className="activity-list">
-                        {stats.recentActivity.map((item, index) => (
-                            <div key={`${item.type}-${item.id}-${index}`} className="activity-item">
-                                <div className="activity-icon">
-                                    {item.type === 'quote' ? '📄' : '👤'}
-                                </div>
-                                <div className="activity-content">
-                                    <div className="activity-title">{item.title}</div>
-                                    <div className="activity-subtitle">{item.subtitle}</div>
-                                </div>
-                                <div className="activity-meta">
-                                    <span
-                                        className="activity-status"
-                                        style={{ color: getStatusColor(item.status) }}
-                                    >
-                                        {item.status}
-                                    </span>
-                                    <span className="activity-date">{formatDate(item.createdAt)}</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="no-activity">
-                        <p>No recent activity to show.</p>
-                        <p>Start by creating a quote or adding a client!</p>
+                {/* Audit Logs Tab */}
+                {activeTab === 'audit-logs' && (
+                    <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+                        <table className="min-w-full">
+                            <thead className="bg-gray-700">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Action</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">User</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Details</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-700">
+                                {auditLogs.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={4} className="px-6 py-8 text-center text-gray-500">No audit logs available</td>
+                                    </tr>
+                                ) : (
+                                    auditLogs.map((log, index) => (
+                                        <tr key={index} className="hover:bg-gray-700/50">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="text-sm font-medium text-purple-400">{log.action}</span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                                {log.user_email || 'System'}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-gray-400 max-w-xs truncate">
+                                                {typeof log.details === 'object' ? JSON.stringify(log.details) : log.details}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+                                                {formatDate(log.created_at)}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 )}
             </div>
-
-            {/* Monthly Summary */}
-            {stats?.monthlyTrend?.length > 0 && (
-                <div className="monthly-summary">
-                    <h2>Monthly Overview</h2>
-                    <div className="trend-grid">
-                        {stats.monthlyTrend.map((month, index) => (
-                            <div key={index} className="trend-item">
-                                <div className="trend-month">
-                                    {new Date(month.month).toLocaleDateString('en-ZA', { month: 'short', year: '2-digit' })}
-                                </div>
-                                <div className="trend-stats">
-                                    <span className="trend-quotes">{month.quoteCount} quotes</span>
-                                    <span className="trend-revenue">{formatCurrency(month.revenue)}</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
