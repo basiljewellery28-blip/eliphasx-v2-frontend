@@ -17,6 +17,7 @@ import OrganizationSettings from './components/Billing/OrganizationSettings';
 import TermsOfService from './pages/legal/TermsOfService';
 import PrivacyPolicy from './pages/legal/PrivacyPolicy';
 import AcceptInvite from './components/Auth/AcceptInvite';
+import OrganizationDashboard from './components/Organization/OrganizationDashboard';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
@@ -87,6 +88,14 @@ function AppRoutes() {
                 element={
                     <ProtectedRoute>
                         <AdminPanel />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/org-dashboard"
+                element={
+                    <ProtectedRoute>
+                        <OrganizationDashboard />
                     </ProtectedRoute>
                 }
             />
