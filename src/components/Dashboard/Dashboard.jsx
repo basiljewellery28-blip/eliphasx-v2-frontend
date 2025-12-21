@@ -71,6 +71,12 @@ const Dashboard = () => {
                             <Link to="/profile" className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
                                 Profile
                             </Link>
+                            {/* Org Dashboard Link - For admins and org owners */}
+                            {(user?.role === 'admin' || user?.is_org_owner) && (
+                                <Link to="/org-dashboard" className="text-sm font-medium text-purple-600 hover:text-purple-800 transition-colors flex items-center">
+                                    📊 Org Dashboard
+                                </Link>
+                            )}
                             {/* Super Admin Link - Only for whitelisted emails */}
                             {['ntobekom@basilx.co.za', 'eliphasxsupport@basilx.co.za'].includes(user?.email?.toLowerCase()) && (
                                 <Link to="/sysadmin" className="text-sm font-medium text-yellow-600 hover:text-yellow-800 transition-colors flex items-center">
