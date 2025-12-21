@@ -14,22 +14,7 @@ const OrganizationDashboard = () => {
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const initialTab = queryParams.get('tab') || 'overview';
-    const [activeTab, setActiveTab] = useState(initialTab);
-
-    // Update URL when tab changes
-    const handleTabChange = (tabId) => {
-        setActiveTab(tabId);
-        const params = new URLSearchParams(location.search);
-        params.set('tab', tabId);
-        navigate({ search: params.toString() }, { replace: true });
-    };
-    const [users, setUsers] = useState([]);
-    const [showInviteModal, setShowInviteModal] = useState(false);
-    const [inviteEmail, setInviteEmail] = useState('');
-    const [inviteRole, setInviteRole] = useState('user');
-    const [inviteLoading, setInviteLoading] = useState(false);
-    const [inviteError, setInviteError] = useState('');
-    const [inviteSuccess, setInviteSuccess] = useState('');
+    const [activeTab, setActiveTab] = useState('overview');
 
     // Check if user is admin or org owner
     const isOrgAdmin = user?.role === 'admin' || user?.is_org_owner;
@@ -46,16 +31,14 @@ const OrganizationDashboard = () => {
         try {
             setLoading(true);
             setError('');
-            const [statsRes, clientsRes, logsRes, usersRes] = await Promise.all([
+            const [statsRes, clientsRes, logsRes] = await Promise.all([
                 api.get('/organizations/dashboard-stats'),
                 api.get('/clients'),
-                api.get('/organizations/audit-logs').catch(() => ({ data: { logs: [] } })),
-                api.get('/organizations/users').catch(() => ({ data: { users: [] } }))
+                api.get('/organizations/audit-logs').catch(() => ({ data: { logs: [] } }))
             ]);
             setStats(statsRes.data);
             setClients(clientsRes.data.clients || []);
             setAuditLogs(logsRes.data.logs || []);
-            setUsers(usersRes.data.users || []);
         } catch (err) {
             setError(err.response?.data?.error || 'Failed to load dashboard data');
             console.error('Org Dashboard Error:', err);
@@ -70,29 +53,6 @@ const OrganizationDashboard = () => {
             loadData();
         } catch (err) {
             alert('Failed to verify client: ' + (err.response?.data?.error || err.message));
-        }
-    };
-
-    const handleInviteUser = async (e) => {
-        e.preventDefault();
-        setInviteLoading(true);
-        setInviteError('');
-        setInviteSuccess('');
-
-        try {
-            await api.post('/organizations/invite', { email: inviteEmail, role: inviteRole });
-            setInviteSuccess(`Invitation sent to ${inviteEmail}`);
-            setInviteEmail('');
-            // reload data to see if any stats update (though invite is pending)
-            loadData();
-            setTimeout(() => {
-                setShowInviteModal(false);
-                setInviteSuccess('');
-            }, 2000);
-        } catch (err) {
-            setInviteError(err.response?.data?.error || err.response?.data?.message || 'Failed to send invitation');
-        } finally {
-            setInviteLoading(false);
         }
     };
 
@@ -145,7 +105,7 @@ const OrganizationDashboard = () => {
             {/* Tabs */}
             <div className="max-w-7xl mx-auto px-4 py-4">
                 <div className="flex space-x-2 mb-6">
-                    {['overview', 'clients', 'team', 'audit-logs'].map(tab => (
+                    {['overview', 'clients', 'audit-logs'].map(tab => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
@@ -191,64 +151,6 @@ const OrganizationDashboard = () => {
                         <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
                             <h3 className="text-gray-400 text-sm mb-2">Team Members</h3>
                             <p className="text-3xl font-bold text-white">{stats.team?.members || 0}</p>
-                        </div>
-                    </div>
-                )}
-
-                {/* Team Tab */}
-                {activeTab === 'team' && (
-                    <div className="space-y-6">
-                        <div className="flex justify-between items-center">
-                            <h2 className="text-xl font-bold text-white">Team Members</h2>
-                            <button
-                                onClick={() => setShowInviteModal(true)}
-                                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center"
-                            >
-                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                </svg>
-                                Invite Member
-                            </button>
-                        </div>
-
-                        <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-                            <table className="min-w-full">
-                                <thead className="bg-gray-700">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">User</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Role</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Joined</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-700">
-                                    {users.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={4} className="px-6 py-8 text-center text-gray-500">No team members found</td>
-                                        </tr>
-                                    ) : (
-                                        users.map(u => (
-                                            <tr key={u.id} className="hover:bg-gray-700/50">
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm font-medium text-white">{u.email}</div>
-                                                    {u.is_org_owner && <span className="text-xs text-yellow-400">Owner</span>}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300 capitalize">
-                                                    {u.role}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                                                    {formatDate(u.created_at)}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="px-2 py-1 bg-green-900 text-green-300 text-xs rounded-full">
-                                                        Active
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
                         </div>
                     </div>
                 )}
