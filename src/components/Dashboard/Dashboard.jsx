@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../../contexts/AppContext';
 import { clientAPI } from '../../services/api';
@@ -12,10 +12,43 @@ const Dashboard = () => {
     const [unverifiedCount, setUnverifiedCount] = useState(0);
     const [selectedClientId, setSelectedClientId] = useState('');
     const [helpOpen, setHelpOpen] = useState(false);
+    const searchInputRef = useRef(null);
 
     useEffect(() => {
         loadInitialData(true);
     }, []);
+
+    // Keyboard shortcuts - Ctrl+N (new quote), Ctrl+K (search), ? (help)
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            // Don't trigger if user is typing in an input
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+                return;
+            }
+
+            // Ctrl+N - New Quote
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                e.preventDefault();
+                navigate('/quote/new');
+            }
+
+            // Ctrl+K - Focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                // Focus the GlobalSearch component
+                const searchInput = document.querySelector('#global-search-input');
+                if (searchInput) searchInput.focus();
+            }
+
+            // ? - Open help
+            if (e.key === '?' && !e.ctrlKey && !e.metaKey) {
+                setHelpOpen(true);
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [navigate]);
 
     // Poll for unverified clients (Admin only)
     useEffect(() => {

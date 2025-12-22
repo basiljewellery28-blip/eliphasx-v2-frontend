@@ -64,9 +64,9 @@ const docs = {
             { type: 'heading', text: 'Plan Limits' },
             {
                 type: 'table', headers: ['Plan', 'Team Members'], rows: [
-                    ['Trial', '1 user'],
-                    ['Starter', '3 users'],
-                    ['Professional', '10 users'],
+                    ['14-Day Trial', '1 user'],
+                    ['Essential', '1 user'],
+                    ['Professional', '5 users'],
                     ['Enterprise', 'Unlimited']
                 ]
             }
@@ -81,11 +81,12 @@ const docs = {
         readTime: '5 min',
         content: [
             { type: 'heading', text: 'Available Plans' },
+            { type: 'text', text: 'All plans include a 14-day free trial. Save 17% with annual billing.' },
             {
-                type: 'table', headers: ['Plan', 'Price', 'Quotes/Month'], rows: [
-                    ['Trial', 'Free (14 days)', '5'],
-                    ['Starter', 'R299/mo', '50'],
-                    ['Professional', 'R599/mo', 'Unlimited']
+                type: 'table', headers: ['Plan', 'Monthly Price', 'Team Size', 'Quotes'], rows: [
+                    ['Essential', 'R899/mo', '1 User', '50/month'],
+                    ['Professional', 'R1,999/mo', '5 Users', 'Unlimited'],
+                    ['Enterprise', 'R3,999/mo', 'Unlimited', 'Unlimited']
                 ]
             },
             { type: 'heading', text: 'Payment Methods' },
@@ -111,21 +112,21 @@ const docs = {
         color: 'from-orange-500 to-orange-600',
         readTime: '1 min',
         content: [
-            { type: 'heading', text: 'Navigation' },
+            { type: 'heading', text: 'Navigation (Dashboard)' },
             {
                 type: 'shortcuts', items: [
-                    { keys: 'Ctrl + S', action: 'Save current work' },
                     { keys: 'Ctrl + N', action: 'Create new quote' },
-                    { keys: 'Ctrl + K', action: 'Open search' },
-                    { keys: 'Escape', action: 'Close modal / Cancel' }
+                    { keys: 'Ctrl + K', action: 'Focus search bar' },
+                    { keys: '?', action: 'Open Help Center' },
+                    { keys: 'Escape', action: 'Close modal / Help Center' }
                 ]
             },
             { type: 'heading', text: 'In Quote Builder' },
             {
                 type: 'shortcuts', items: [
+                    { keys: 'Ctrl + S', action: 'Save as draft' },
                     { keys: 'Tab', action: 'Move to next field' },
-                    { keys: 'Shift + Tab', action: 'Move to previous field' },
-                    { keys: 'Enter', action: 'Submit / Confirm' }
+                    { keys: 'Shift + Tab', action: 'Move to previous field' }
                 ]
             }
         ]
@@ -243,8 +244,8 @@ const HelpCenter = ({ isOpen, onClose }) => {
                                         key={cat.id}
                                         onClick={() => setActiveCategory(cat.id)}
                                         className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${activeCategory === cat.id
-                                                ? 'bg-blue-600 text-white shadow-md scale-105'
-                                                : 'bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
+                                            ? 'bg-blue-600 text-white shadow-md scale-105'
+                                            : 'bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
                                             }`}
                                     >
                                         <span>{cat.icon}</span>
