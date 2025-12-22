@@ -4,12 +4,14 @@ import { useApp } from '../../contexts/AppContext';
 import { clientAPI } from '../../services/api';
 
 import GlobalSearch from '../Search/GlobalSearch';
+import HelpCenter from '../Help/HelpCenter';
 
 const Dashboard = () => {
     const { user, quotes, clients, logout, loadInitialData } = useApp();
     const navigate = useNavigate();
     const [unverifiedCount, setUnverifiedCount] = useState(0);
     const [selectedClientId, setSelectedClientId] = useState('');
+    const [helpOpen, setHelpOpen] = useState(false);
 
     useEffect(() => {
         loadInitialData(true);
@@ -65,6 +67,12 @@ const Dashboard = () => {
                             <Link to="/profile" className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors flex items-center">
                                 ⚙️ Settings
                             </Link>
+                            <button
+                                onClick={() => setHelpOpen(true)}
+                                className="text-sm font-medium text-green-600 hover:text-green-800 transition-colors flex items-center"
+                            >
+                                ❓ Help
+                            </button>
                             {/* Super Admin Link - Only for whitelisted emails */}
                             {['ntobekom@basilx.co.za', 'eliphasxsupport@basilx.co.za'].includes(user?.email?.toLowerCase()) && (
                                 <Link to="/sysadmin" className="text-sm font-medium text-yellow-600 hover:text-yellow-800 transition-colors flex items-center">
@@ -241,6 +249,9 @@ const Dashboard = () => {
                     </div>
                 </div>
             </main>
+
+            {/* Help Center Modal */}
+            <HelpCenter isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
         </div>
     );
 };
