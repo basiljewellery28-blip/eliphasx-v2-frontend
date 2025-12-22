@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../../contexts/AppContext';
 import { quotesAPI } from '../../services/api';
@@ -21,6 +21,7 @@ const QuoteBuilder = () => {
     const [collectionMode, setCollectionMode] = useState(false);
     const [variations, setVariations] = useState([]);
     const [showValidation, setShowValidation] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     const [quote, setQuote] = useState({
         client_id: '',
@@ -40,6 +41,20 @@ const QuoteBuilder = () => {
     });
 
     const { sections, totals } = useQuoteCalculations(quote, collectionMode, variations);
+
+    // Keyboard shortcuts - Ctrl+S to save
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                if (!isSaving) {
+                    handleSave('draft');
+                }
+            }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isSaving, quote]);
 
     useEffect(() => {
         if (id && id !== 'new') {
