@@ -3,8 +3,8 @@
  * Google Analytics 4 event tracking for ELIPHASx
  */
 
-// GA4 Measurement ID from environment or fallback
-const GA_MEASUREMENT_ID = import.meta.env.VITE_GA4_ID || 'G-XXXXXXXXXX';
+// GA4 Measurement ID from environment or production default
+const GA_MEASUREMENT_ID = import.meta.env.VITE_GA4_ID || 'G-82VYHSMXMH';
 
 /**
  * Track a custom event in Google Analytics
