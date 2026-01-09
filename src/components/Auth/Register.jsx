@@ -537,8 +537,8 @@ const Register = () => {
                     {currentStep === 3 && renderStep3()}
                     {currentStep === 4 && renderStep4()}
 
-                    <div className="flex justify-between mt-8 gap-4">
-                        {currentStep > 1 ? (
+                    <div className={`flex mt-8 gap-4 ${currentStep === 1 ? 'justify-center' : 'justify-between'}`}>
+                        {currentStep > 1 && (
                             <button
                                 type="button"
                                 onClick={prevStep}
@@ -546,15 +546,13 @@ const Register = () => {
                             >
                                 Back
                             </button>
-                        ) : (
-                            <div className="flex-1" />
                         )}
 
                         {currentStep < 4 ? (
                             <button
                                 type="button"
                                 onClick={nextStep}
-                                className="flex-1 py-3 px-4 bg-primary text-white rounded-xl hover:bg-primary-light transition-all shadow-lg hover:shadow-xl font-medium"
+                                className={`${currentStep === 1 ? 'w-full max-w-xs' : 'flex-1'} py-3 px-4 bg-primary text-white rounded-xl hover:bg-primary-light transition-all shadow-lg hover:shadow-xl font-medium`}
                             >
                                 Continue
                             </button>

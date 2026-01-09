@@ -11,7 +11,7 @@ const BillingPage = () => {
     const [error, setError] = useState('');
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [billingCycle, setBillingCycle] = useState('monthly');
-    const [processing, setProcessing] = useState(false);
+    const [processingPlan, setProcessingPlan] = useState(null);
     const [showComparison, setShowComparison] = useState(false);
 
     const plans = [
@@ -81,7 +81,7 @@ const BillingPage = () => {
 
     const handleSubscribe = async (planId) => {
         try {
-            setProcessing(true);
+            setProcessingPlan(planId);
             const data = await billingAPI.initializePayment(planId, billingCycle);
 
             // Initialize Paystack popup
@@ -110,7 +110,7 @@ const BillingPage = () => {
         } catch (err) {
             setError(err.response?.data?.error || 'Failed to initialize payment');
         } finally {
-            setProcessing(false);
+            setProcessingPlan(null);
         }
     };
 
@@ -120,14 +120,14 @@ const BillingPage = () => {
         }
 
         try {
-            setProcessing(true);
+            setProcessingPlan('cancel');
             await billingAPI.cancelSubscription();
             alert('Subscription cancelled. You will have access until the end of your current billing period.');
             fetchBillingStatus();
         } catch (err) {
             setError(err.response?.data?.error || 'Failed to cancel subscription');
         } finally {
-            setProcessing(false);
+            setProcessingPlan(null);
         }
     };
 
@@ -200,10 +200,10 @@ const BillingPage = () => {
                             {billing.organization.status === 'active' && (
                                 <button
                                     onClick={handleCancel}
-                                    disabled={processing}
+                                    disabled={processingPlan === 'cancel'}
                                     className="mt-4 md:mt-0 text-sm text-gray-500 hover:text-red-600 transition-colors"
                                 >
-                                    Cancel Subscription
+                                    {processingPlan === 'cancel' ? 'Cancelling...' : 'Cancel Subscription'}
                                 </button>
                             )}
                         </div>
@@ -293,7 +293,7 @@ const BillingPage = () => {
 
                             <button
                                 onClick={() => handleSubscribe(plan.id)}
-                                disabled={processing || billing?.organization?.plan === plan.id}
+                                disabled={processingPlan || billing?.organization?.plan === plan.id}
                                 className={`w-full py-3 px-6 rounded-xl font-medium transition-all ${billing?.organization?.plan === plan.id
                                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                     : plan.popular
@@ -303,7 +303,7 @@ const BillingPage = () => {
                             >
                                 {billing?.organization?.plan === plan.id
                                     ? 'Current Plan'
-                                    : processing
+                                    : processingPlan === plan.id
                                         ? 'Processing...'
                                         : 'Get Started'
                                 }
