@@ -31,6 +31,40 @@ export const billingAPI = {
             headers: getAuthHeader()
         });
         return response.data;
+    },
+
+    // Get usage statistics for quota visualization
+    getUsage: async () => {
+        const response = await axios.get(`${API_URL}/billing/usage`, {
+            headers: getAuthHeader()
+        });
+        return response.data;
+    },
+
+    // Get seat addons status
+    getSeatAddons: async () => {
+        const response = await axios.get(`${API_URL}/billing/seat-addons`, {
+            headers: getAuthHeader()
+        });
+        return response.data;
+    },
+
+    // Purchase seat addons
+    purchaseSeatAddons: async (quantity) => {
+        const response = await axios.post(`${API_URL}/billing/seat-addons/purchase`,
+            { quantity },
+            { headers: getAuthHeader() }
+        );
+        return response.data;
+    },
+
+    // Remove seat addons
+    removeSeatAddons: async (quantity) => {
+        const response = await axios.delete(`${API_URL}/billing/seat-addons`, {
+            headers: getAuthHeader(),
+            data: { quantity }
+        });
+        return response.data;
     }
 };
 

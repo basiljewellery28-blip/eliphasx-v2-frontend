@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { organizationAPI } from '../../services/billingService';
+import { organizationAPI, billingAPI } from '../../services/billingService';
 import { useApp } from '../../contexts/AppContext';
+import UpgradeModal from './UpgradeModal';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const OrganizationSettings = () => {
     const navigate = useNavigate();
     const { user } = useApp();
+    const isOrgAdmin = user?.role === 'admin' || user?.is_org_owner;
     const [org, setOrg] = useState(null);
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -31,11 +33,26 @@ const OrganizationSettings = () => {
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef(null);
 
+    // Upgrade modal state
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+    const [upgradeFeature, setUpgradeFeature] = useState('');
+    const [usage, setUsage] = useState(null);
+
     useEffect(() => {
         fetchOrganization();
         fetchUsers();
         fetchBranding();
+        fetchUsage();
     }, []);
+
+    const fetchUsage = async () => {
+        try {
+            const data = await billingAPI.getUsage();
+            setUsage(data);
+        } catch (err) {
+            console.error('Failed to fetch usage:', err);
+        }
+    };
 
     const fetchOrganization = async () => {
         try {
@@ -455,11 +472,27 @@ const OrganizationSettings = () => {
                 </div>
             </div>
 
-            {/* Invite User */}
+            {/* Invite User Section */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Invite Team Member</h2>
 
-                <form onSubmit={handleInvite} className="flex flex-col sm:flex-row gap-4">
+                <form onSubmit={(e) => {
+                    e.preventDefault();
+                    // Check if user can invite
+                    if (!isOrgAdmin) {
+                        setUpgradeFeature('Team Members');
+                        setShowUpgradeModal(true);
+                        return;
+                    }
+                    // Check user limit - but allow accountants (they don't count)
+                    if (inviteRole !== 'accountant' && usage && !usage.users.unlimited && usage.users.count >= usage.users.limit) {
+                        setUpgradeFeature('Team Members');
+                        setShowUpgradeModal(true);
+                        return;
+                    }
+                    // Proceed with invite
+                    handleInvite(e);
+                }} className="flex flex-col sm:flex-row gap-4">
                     <input
                         type="email"
                         value={inviteEmail}
@@ -471,10 +504,12 @@ const OrganizationSettings = () => {
                     <select
                         value={inviteRole}
                         onChange={(e) => setInviteRole(e.target.value)}
-                        className="input-field w-full sm:w-32"
+                        className="input-field w-full sm:w-48"
                     >
                         <option value="sales">Sales</option>
+                        <option value="designer">Designer (No Prices)</option>
                         <option value="admin">Admin</option>
+                        <option value="accountant">Accountant (Read-only)</option>
                     </select>
                     <button
                         type="submit"
@@ -484,7 +519,86 @@ const OrganizationSettings = () => {
                         {inviting ? 'Inviting...' : 'Invite'}
                     </button>
                 </form>
+
+                {/* Show limit info and seat addons for non-unlimited plans */}
+                {usage && !usage.users.unlimited && (
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <span className="text-sm text-gray-600">
+                                    Team: <strong>{usage.users.count}</strong> / {usage.users.totalLimit} members
+                                    {usage.users.addonSeats > 0 && (
+                                        <span className="text-blue-600 ml-1">
+                                            ({usage.users.baseLimit} plan + {usage.users.addonSeats} addons)
+                                        </span>
+                                    )}
+                                </span>
+                                {usage.users.percent >= 80 && (
+                                    <span className="text-yellow-600 ml-2">⚠️ Approaching limit</span>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Seat Addon Purchase - Only for Professional plan */}
+                        {usage.seatAddons?.available && isOrgAdmin && (
+                            <div className="mt-3 pt-3 border-t border-gray-200">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <span className="text-sm font-medium text-gray-700">Need more seats?</span>
+                                        <p className="text-xs text-gray-500">R{usage.seatAddons.pricePerSeat}/month per seat</p>
+                                    </div>
+                                    <button
+                                        onClick={async () => {
+                                            try {
+                                                const data = await billingAPI.purchaseSeatAddons(1);
+                                                // If Paystack popup needed
+                                                if (window.PaystackPop && data.paystack) {
+                                                    const handler = window.PaystackPop.setup({
+                                                        key: data.paystack.publicKey,
+                                                        email: data.paystack.email,
+                                                        amount: data.paystack.amount,
+                                                        currency: data.paystack.currency,
+                                                        ref: data.paystack.reference,
+                                                        metadata: data.paystack.metadata,
+                                                        callback: function (response) {
+                                                            setSuccess('Seat addon purchased!');
+                                                            fetchUsage();
+                                                        },
+                                                        onClose: function () { }
+                                                    });
+                                                    handler.openIframe();
+                                                } else {
+                                                    setSuccess(data.message);
+                                                    fetchUsage();
+                                                }
+                                            } catch (err) {
+                                                setError(err.response?.data?.error || 'Failed to purchase seat');
+                                            }
+                                        }}
+                                        className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                                    >
+                                        + Buy 1 Seat
+                                    </button>
+                                </div>
+                                {usage.seatAddons.currentAddons > 0 && (
+                                    <p className="mt-2 text-xs text-gray-500">
+                                        Current addons: {usage.seatAddons.currentAddons} seat(s) = R{usage.seatAddons.currentAddons * usage.seatAddons.pricePerSeat}/mo extra
+                                    </p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
+
+            {/* Upgrade Modal */}
+            <UpgradeModal
+                isOpen={showUpgradeModal}
+                onClose={() => setShowUpgradeModal(false)}
+                feature={upgradeFeature}
+                currentPlan={usage?.plan || org?.plan}
+                requiredPlan={upgradeFeature === 'Team Members' ? 'Professional' : 'Enterprise'}
+            />
         </div>
     );
 };

@@ -18,6 +18,7 @@ import TermsOfService from './pages/legal/TermsOfService';
 import PrivacyPolicy from './pages/legal/PrivacyPolicy';
 import AcceptInvite from './components/Auth/AcceptInvite';
 import OrganizationDashboard from './components/Organization/OrganizationDashboard';
+import BranchManagement from './components/Branches/BranchManagement';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
@@ -130,6 +131,14 @@ function AppRoutes() {
                 element={
                     <ProtectedRoute>
                         <SysAdminDashboard />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/branches"
+                element={
+                    <ProtectedRoute>
+                        <BranchManagement />
                     </ProtectedRoute>
                 }
             />

@@ -81,7 +81,7 @@ const docs = {
         readTime: '5 min',
         content: [
             { type: 'heading', text: 'Available Plans' },
-            { type: 'text', text: 'All plans include a 14-day free trial. Save 17% with annual billing.' },
+            { type: 'text', text: 'All plans include a 28-day free trial. Save 17% with annual billing.' },
             {
                 type: 'table', headers: ['Plan', 'Monthly Price', 'Team Size', 'Quotes'], rows: [
                     ['Essential', 'R899/mo', '1 User', '50/month'],

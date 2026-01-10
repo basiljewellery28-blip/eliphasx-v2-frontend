@@ -40,6 +40,15 @@ const INDUSTRIES = [
     { value: 'other', label: 'Other' }
 ];
 
+// Team sizes for trial assignment
+const TEAM_SIZES = [
+    { value: '', label: 'Select team size' },
+    { value: 'just_me', label: 'Just me' },
+    { value: '2-5', label: '2-5 people' },
+    { value: '6-10', label: '6-10 people' },
+    { value: '10+', label: 'More than 10' }
+];
+
 const Register = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -65,6 +74,7 @@ const Register = () => {
         companySize: '',
         industry: '',
         province: '',
+        teamSize: '', // For trial plan assignment
         // Step 4: Contact (Optional)
         addressLine1: '',
         addressLine2: '',
@@ -143,8 +153,8 @@ const Register = () => {
                 }
                 return true;
             case 3:
-                if (!formData.companyName || !formData.companySize || !formData.province) {
-                    setError('Company name, size, and province are required');
+                if (!formData.companyName || !formData.companySize || !formData.province || !formData.teamSize) {
+                    setError('Company name, size, province, and team size are required');
                     return false;
                 }
                 return true;
@@ -190,12 +200,14 @@ const Register = () => {
                 postalCode: formData.postalCode,
                 registrationNumber: formData.registrationNumber,
                 vatNumber: formData.vatNumber,
+                teamSize: formData.teamSize, // For trial plan assignment
                 acceptedTerms: formData.acceptedTerms,
                 acceptedPrivacy: formData.acceptedPrivacy
             });
 
+            const trialType = formData.teamSize === '10+' ? 'Enterprise' : 'Professional';
             navigate('/login', {
-                state: { message: 'Registration successful! Your 14-day trial has started. Please sign in.' }
+                state: { message: `Registration successful! Your 28-day ${trialType} trial has started. Please sign in.` }
             });
         } catch (err) {
             setError(err.response?.data?.error || 'Registration failed. Please try again.');
@@ -399,6 +411,30 @@ const Register = () => {
                         <option key={prov.value} value={prov.value}>{prov.label}</option>
                     ))}
                 </select>
+            </div>
+
+            <div className="pt-4 border-t">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                    How many people will use ELIPHASx? *
+                </label>
+                <p className="text-xs text-gray-500 mb-2">
+                    This helps us set up your trial with the right features
+                </p>
+                <select
+                    value={formData.teamSize}
+                    onChange={(e) => updateField('teamSize', e.target.value)}
+                    className="input-field py-3 px-4"
+                    required
+                >
+                    {TEAM_SIZES.map(size => (
+                        <option key={size.value} value={size.value}>{size.label}</option>
+                    ))}
+                </select>
+                <p className="text-xs text-blue-600 mt-2">
+                    📦 {formData.teamSize === '10+'
+                        ? 'You\'ll get an Enterprise trial with unlimited users & API access!'
+                        : 'You\'ll get a Professional trial with 5 users & white-labeling!'}
+                </p>
             </div>
         </div>
     );

@@ -108,7 +108,12 @@ const BillingPage = () => {
                 alert(`Would redirect to Paystack for ${planId} plan (${billingCycle})`);
             }
         } catch (err) {
-            setError(err.response?.data?.error || 'Failed to initialize payment');
+            const errorData = err.response?.data;
+            if (errorData?.code === 'DOWNGRADE_BLOCKED') {
+                setError(`⚠️ ${errorData.message}\n\nGo to Settings → Team to remove users before downgrading.`);
+            } else {
+                setError(errorData?.error || 'Failed to initialize payment');
+            }
         } finally {
             setProcessingPlan(null);
         }
@@ -168,7 +173,7 @@ const BillingPage = () => {
                     </h1>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                         Premium jewelry manufacturing software for high-end businesses.
-                        All plans include a 14-day free trial.
+                        All plans include a 28-day free trial.
                     </p>
                 </div>
 

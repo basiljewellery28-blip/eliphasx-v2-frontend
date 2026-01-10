@@ -2,9 +2,11 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../../contexts/AppContext';
 import { clientAPI } from '../../services/api';
+import { billingAPI } from '../../services/billingService';
 
 import GlobalSearch from '../Search/GlobalSearch';
 import HelpCenter from '../Help/HelpCenter';
+import BranchSelector from '../Branches/BranchSelector';
 
 const Dashboard = () => {
     const { user, quotes, clients, logout, loadInitialData } = useApp();
@@ -12,6 +14,7 @@ const Dashboard = () => {
     const [unverifiedCount, setUnverifiedCount] = useState(0);
     const [selectedClientId, setSelectedClientId] = useState('');
     const [helpOpen, setHelpOpen] = useState(false);
+    const [usage, setUsage] = useState(null);
     const searchInputRef = useRef(null);
 
     useEffect(() => {
@@ -68,6 +71,19 @@ const Dashboard = () => {
         }
     }, [user]);
 
+    // Fetch usage statistics for quota visualization
+    useEffect(() => {
+        const fetchUsage = async () => {
+            try {
+                const data = await billingAPI.getUsage();
+                setUsage(data);
+            } catch (error) {
+                console.error('Failed to fetch usage:', error);
+            }
+        };
+        fetchUsage();
+    }, []);
+
     const draftQuotes = quotes.filter(q => q.status === 'draft');
     const completedQuotes = quotes.filter(q => q.status === 'completed');
 
@@ -96,6 +112,11 @@ const Dashboard = () => {
                                     )}
                                 </Link>
                             )}
+                            {/* Branch Selector for Multi-Branch Users */}
+                            <BranchSelector
+                                currentOrgId={user?.organization_id}
+                                currentOrgName={user?.organizationName}
+                            />
                             <span className="text-sm text-gray-500 font-medium">Welcome, {user?.email}</span>
                             <Link to="/profile" className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors flex items-center">
                                 ⚙️ Settings
@@ -124,6 +145,7 @@ const Dashboard = () => {
             </nav>
 
             <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+
                 {/* Stats Section */}
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
                     <div className="card border-l-4 border-secondary">
@@ -143,6 +165,41 @@ const Dashboard = () => {
                         <dd className="mt-1 text-3xl font-heading font-semibold text-primary">{completedQuotes.length}</dd>
                     </div>
                 </div>
+
+                {/* Quota Usage Bar - Only show for limited plans */}
+                {usage && !usage.quotes.unlimited && (
+                    <div className="card p-4 mb-8 border-l-4 border-blue-500">
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-gray-700">📊 Monthly Quotes</span>
+                                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full capitalize">
+                                    {usage.plan} Plan
+                                </span>
+                            </div>
+                            <span className={`text-sm font-semibold ${usage.quotes.percent >= 80 ? 'text-red-600' :
+                                usage.quotes.percent >= 60 ? 'text-yellow-600' : 'text-green-600'
+                                }`}>
+                                {usage.quotes.used} / {usage.quotes.limit} used
+                            </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                            <div
+                                className={`h-2.5 rounded-full transition-all duration-300 ${usage.quotes.percent >= 80 ? 'bg-red-500' :
+                                    usage.quotes.percent >= 60 ? 'bg-yellow-500' : 'bg-green-500'
+                                    }`}
+                                style={{ width: `${usage.quotes.percent}%` }}
+                            ></div>
+                        </div>
+                        {usage.quotes.percent >= 80 && (
+                            <div className="mt-2 flex items-center justify-between">
+                                <span className="text-xs text-red-600">⚠️ You're approaching your limit</span>
+                                <Link to="/billing" className="text-xs text-blue-600 hover:underline font-medium">
+                                    Upgrade for unlimited →
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Start New Quote Section */}
                 <div className="card p-6 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-r from-blue-50 to-white border-blue-100">

@@ -24,10 +24,17 @@ api.interceptors.response.use(
     },
     (error) => {
         console.error('API Error:', error.response?.status, error.response?.data || error.message);
-        if (error.response?.status === 401) {
+
+        // Handle auth errors (token expired or invalid)
+        const status = error.response?.status;
+        const errorCode = error.response?.data?.code;
+
+        if (status === 401 || (status === 403 && errorCode === 'INVALID_TOKEN')) {
+            console.warn('Session expired or invalid, redirecting to login...');
             localStorage.removeItem('token');
             localStorage.removeItem('user');
-            window.location.href = '/login';
+            // Use replace to prevent back button issues
+            window.location.replace('/login');
         }
         return Promise.reject(error);
     }

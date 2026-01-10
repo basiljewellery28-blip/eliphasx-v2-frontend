@@ -103,7 +103,7 @@ const TermsOfService = () => {
                         <h2 className="text-xl font-bold text-gray-900 mb-4">4. Subscription and Payment</h2>
                         <h3 className="text-lg font-semibold text-gray-800 mt-4 mb-2">4.1 Free Trial</h3>
                         <p>
-                            New accounts receive a 14-day free trial with full access to platform features.
+                            New accounts receive a 28-day free trial with full access to platform features.
                             No payment information is required during the trial period.
                         </p>
 

@@ -44,7 +44,11 @@ const UserProfile = () => {
         fetchProfile();
     }, []);
 
-    const fetchProfile = async () => {
+    // Fetch profile with automatic retry for transient errors
+    const fetchProfile = async (retryCount = 0) => {
+        const maxRetries = 3;
+        const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 5000); // Exponential backoff: 1s, 2s, 4s, max 5s
+
         try {
             setLoading(true);
             setError('');
@@ -59,7 +63,26 @@ const UserProfile = () => {
             });
         } catch (err) {
             console.error('Failed to fetch profile:', err);
-            setError('Failed to load profile');
+
+            // Check if it's an auth error (token expired/invalid)
+            const status = err.response?.status;
+            if (status === 401 || status === 403) {
+                // Token expired or invalid - logout user
+                console.warn('Session expired, logging out...');
+                logout();
+                return;
+            }
+
+            // For other errors, retry with exponential backoff
+            if (retryCount < maxRetries && (!status || status >= 500 || !err.response)) {
+                console.log(`Retrying profile fetch (${retryCount + 1}/${maxRetries}) in ${retryDelay}ms...`);
+                setTimeout(() => fetchProfile(retryCount + 1), retryDelay);
+                return;
+            }
+
+            // All retries exhausted - show error
+            const errorMessage = err.response?.data?.error || err.message || 'Network error';
+            setError(`Failed to load profile: ${errorMessage}. Please refresh the page.`);
         } finally {
             setLoading(false);
         }
@@ -120,7 +143,7 @@ const UserProfile = () => {
     const tabs = [
         { id: 'details', label: '👤 Profile', always: true },
         { id: 'security', label: '🔐 Security', always: true },
-        { id: 'billing', label: '💳 Billing', always: true },
+        { id: 'billing', label: '💳 Billing', admin: true },
         { id: 'team', label: '👥 Team', always: true },
         { id: 'clients', label: '📋 Clients', always: true },
         { id: 'org-dashboard', label: '📊 Dashboard', admin: true },
@@ -346,8 +369,8 @@ const UserProfile = () => {
 
                                     {passwordMessage.text && (
                                         <div className={`p-3 rounded-lg text-sm mb-4 ${passwordMessage.type === 'success'
-                                                ? 'bg-green-100 text-green-700'
-                                                : 'bg-red-100 text-red-700'
+                                            ? 'bg-green-100 text-green-700'
+                                            : 'bg-red-100 text-red-700'
                                             }`}>
                                             {passwordMessage.text}
                                         </div>

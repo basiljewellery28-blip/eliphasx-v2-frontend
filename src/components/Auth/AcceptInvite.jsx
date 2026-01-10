@@ -338,8 +338,8 @@ const AcceptInvite = () => {
                     {currentStep === 1 && renderStep1()}
                     {currentStep === 2 && renderStep2()}
 
-                    <div className="flex justify-between mt-8 gap-4">
-                        {currentStep > 1 ? (
+                    <div className={`mt-8 gap-4 flex ${currentStep === 1 ? 'justify-center' : 'justify-between'}`}>
+                        {currentStep > 1 && (
                             <button
                                 type="button"
                                 onClick={() => setCurrentStep(1)}
@@ -347,15 +347,13 @@ const AcceptInvite = () => {
                             >
                                 Back
                             </button>
-                        ) : (
-                            <div className="flex-1" />
                         )}
 
                         {currentStep < 2 ? (
                             <button
                                 type="button"
                                 onClick={nextStep}
-                                className="flex-1 py-3 px-4 bg-primary text-white rounded-xl hover:bg-primary-light transition-all shadow-lg hover:shadow-xl font-medium"
+                                className={`py-3 px-4 bg-primary text-white rounded-xl hover:bg-primary-light transition-all shadow-lg hover:shadow-xl font-medium ${currentStep === 1 ? 'w-full max-w-xs' : 'flex-1'}`}
                             >
                                 Continue
                             </button>
